@@ -3,7 +3,6 @@ import { useCounter } from "./store/useCounter";
 import { ref, onMounted } from "vue";
 import axios from "axios";
 
-console.log(useCounter);
 const store = useCounter();
 
 // setstate of data to be null
@@ -21,6 +20,5 @@ onMounted(async () => {
 </script>
 
 <template>
-	<button @click="store.n++">Increment {{ store.n }}</button>
-	{{ JSON.stringify(data, null, 2) }}
+	<NuxtLayout><NuxtPage /></NuxtLayout>
 </template>
