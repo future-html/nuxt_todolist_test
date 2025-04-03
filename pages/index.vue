@@ -12,7 +12,7 @@
 			placeholder="Enter Board Name"
 		/>
 		<button type="submit">Submit</button>
-		{{ JSON.stringify(storeTodolist.getBoard) }}
+		{{ JSON.stringify(storeTodolist.getColumns) }}
 	</form>
 </template>
 

@@ -19,10 +19,14 @@ export const useTodolist = defineStore("todolist", {
 	},
 	getters: {
 		getBoardId: (state) => {
-			return (boardId: string) => state.board.find((board) => board.boardId === boardId);
+			return (boardId: string, owner: string) =>
+				state.board.find((board) => board.owner === owner && board.boardId === boardId);
 		}, // pass the paramters too {{ JSON.stringify(storeTodolist.getBoardId("board-1")) }}
 		getBoard: (state) => {
 			return state.board;
 		}, //{{ JSON.stringify(storeTodolist.getBoard) }}
+		getColumns: (state) => {
+			return state.columns;
+		},
 	},
 });
