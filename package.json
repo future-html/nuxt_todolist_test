@@ -20,6 +20,7 @@
     "vue-router": "latest"
   },
   "devDependencies": {
+    "@types/node": "^22.14.0",
     "axios": "^1.7.9"
   }
 }

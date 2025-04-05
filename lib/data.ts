@@ -1,32 +1,31 @@
 // lib/localStorage.ts
-type User = {
+export type User = {
 	userId: string;
 	name: string;
 	email: string;
 	password: string;
 };
 
-type Board = {
+export type Board = {
 	boardId: string;
 	boardName: string;
 	people: string[]; // user IDs (excluding owner)
 	owner: string; // user ID
 };
 
-type Column = {
+export type Column = {
 	columnId: string;
 	columnName: string;
 	boardId: string;
 	taskIds: string[]; // ordered list of task IDs
 };
 
-type Task = {
+export type Task = {
 	taskId: string;
 	taskName: string;
 	priority: "low" | "medium" | "high";
-	status: "todo" | "In progress" | "completed";
 	dueDate: string; // dd-mm-yy format
-	assignee: string[]; // user IDs
+	assignee: string; // user IDs
 };
 
 type AppData = {
@@ -50,59 +49,176 @@ export const defaultData: AppData = {
 			email: "jane@example.com",
 			password: "password123",
 		},
+		{
+			userId: "user-3",
+			name: "Henry Smith",
+			email: "henry@yahoo.com",
+			password: "password123",
+		},
+		{
+			userId: "user-4",
+			name: "Jane Siisi",
+			email: "gane@examole.com",
+			password: "password123",
+		},
+		{
+			userId: "user-5",
+			name: "Board User",
+			email: "board@example.com",
+			password: "password123",
+		},
+		{
+			userId: "user-6",
+			name: "Laura",
+			email: "laura@example.com",
+			password: "password123",
+		},
 	],
 	boards: [
 		{
 			boardId: "board-1",
 			boardName: "Project Roadmap",
-			people: ["user-2"],
+			people: ["user-2", "user-5", "user-6"],
 			owner: "user-1",
+		},
+		{
+			boardId: "board-2",
+			boardName: "Vue Assignment",
+			people: ["user-3", "user-4", "user-5"],
+			owner: "user-2",
+		},
+		{
+			boardId: "board-3",
+			boardName: "Personal Tasks",
+			people: ["user-4", "user-6"],
+			owner: "user-3",
+		},
+		{
+			boardId: "board-4",
+			boardName: "Code with coffee break",
+			people: ["user-2", "user-5", "user-6"],
+			owner: "user-4",
 		},
 	],
 	columns: [
+		// Board 1 columns
 		{
 			columnId: "column-1",
 			columnName: "To Do",
 			boardId: "board-1",
-			taskIds: ["task-1", "task-2"],
+			taskIds: ["task-1", "task-3", "task-7"],
 		},
 		{
 			columnId: "column-2",
 			columnName: "In Progress",
 			boardId: "board-1",
-			taskIds: ["task-3"],
+			taskIds: ["task-2", "task-8"],
 		},
 		{
 			columnId: "column-3",
 			columnName: "Done",
 			boardId: "board-1",
-			taskIds: [],
+			taskIds: ["task-4"],
+		},
+		// Board 2 columns
+		{
+			columnId: "column-4",
+			columnName: "Done",
+			boardId: "board-2",
+			taskIds: ["task-5"],
+		},
+		// Board 4 columns
+		{
+			columnId: "column-5",
+			columnName: "In Progress",
+			boardId: "board-4",
+			taskIds: ["task-6"],
 		},
 	],
 	tasks: [
+		// Board 1 tasks
 		{
 			taskId: "task-1",
 			taskName: "Design homepage",
 			priority: "high",
-			status: "todo",
 			dueDate: "15-06-23",
-			assignee: ["user-1"],
+			assignee: "user-2", // Valid: user-2 is in board-1 people
 		},
 		{
 			taskId: "task-2",
 			taskName: "Create API docs",
 			priority: "medium",
-			status: "todo",
 			dueDate: "20-06-23",
-			assignee: ["user-2"],
+			assignee: "user-5", // Valid: user-5 is in board-1 people
 		},
 		{
 			taskId: "task-3",
-			taskName: "Implement auth",
+			taskName: "Implement authentication",
 			priority: "high",
-			status: "In progress",
+			dueDate: "10-07-23",
+			assignee: "user-1", // Valid: user-1 is board-1 owner
+		},
+		{
+			taskId: "task-4",
+			taskName: "Project planning",
+			priority: "medium",
+			dueDate: "01-06-23",
+			assignee: "user-6", // Valid: user-6 is in board-1 people
+		},
+		// Board 2 tasks
+		{
+			taskId: "task-5",
+			taskName: "Implement Vue components",
+			priority: "high",
 			dueDate: "10-06-23",
-			assignee: ["user-1", "user-2"],
+			assignee: "user-3", // Valid: user-3 is in board-2 people
+		},
+		// Board 4 tasks
+		{
+			taskId: "task-6",
+			taskName: "Coffee break coding",
+			priority: "low",
+			dueDate: "12-06-23",
+			assignee: "user-4", // Valid: user-4 is board-4 owner
+		},
+		{
+			taskId: "task-7",
+			taskName: "Write unit tests",
+			priority: "medium",
+			dueDate: "25-06-23",
+			assignee: "user-5", // Valid: user-5 is in board-1 people
+		},
+		{
+			taskId: "task-8",
+			taskName: "Fix bugs",
+			priority: "low",
+			dueDate: "30-06-23",
+			assignee: "user-6", // Valid: user-6 is in board-1 people
 		},
 	],
 };
+
+// Validation function to check data integrity
+export function validateData(data: AppData): boolean {
+	const validations = data.tasks.map((task) => {
+		// Find the column containing this task
+		const column = data.columns.find((col) => col.taskIds.includes(task.taskId));
+		if (!column) return false;
+
+		// Find the board this column belongs to
+		const board = data.boards.find((b) => b.boardId === column.boardId);
+		if (!board) return false;
+
+		// Check if assignee is either owner or in people array
+		const isValidAssignee = task.assignee === board.owner || board.people.includes(task.assignee);
+
+		return isValidAssignee;
+	});
+
+	return validations.every((valid) => valid);
+}
+
+// Check if current data is valid
+console.log("Data validation:", validateData(defaultData)); // Should be true
+
+export const allPeople = defaultData.users.map((user) => user.userId);
