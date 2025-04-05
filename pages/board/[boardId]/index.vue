@@ -121,7 +121,7 @@
 </template>
 
 <script setup>
-import { useBoard, useTodolist } from "~/store/useTask";
+import { useBoard, useTodolist, formatDate } from "~/store/useTask";
 import { ref } from "vue";
 const columnName = ref("");
 
