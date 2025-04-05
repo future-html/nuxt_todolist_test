@@ -12,14 +12,22 @@
 		<button @click.stop="handleAddColumn(columnName, boardId)">Add column</button>
 	</section>
 
-	<ul v-for="column in todolistStore.getAllColumnsByBoardId(boardId)">
-		<li>
+	<ul
+		class=""
+		v-for="column in todolistStore.getAllColumnsByBoardId(boardId)"
+	>
+		<li class="flex">
 			<h2>{{ column.columnName }}</h2>
 			<div
 				v-for="taskId in column.taskIds"
 				class="todo"
 			>
 				<h3>{{ todolistStore.getTaskById(taskId)?.taskName }}</h3>
+				<h2>{{ todolistStore.getTaskById(taskId)?.priority }}</h2>
+				<p>{{ todolistStore.getTaskById(taskId)?.dueDate }}</p>
+				<p>{{ todolistStore.getTaskById(taskId)?.assignee }}</p>
+				<button @click="handleDeleteTask(taskId)">Delete Task</button>
+				<button @click="handleEditTask(taskId, column.columnId)">Edit Task</button>
 				<!-- <span>Task name</span>
 				<span>Priority</span>
 				<span>Due date</span>
@@ -87,8 +95,15 @@
 					<option>{{ boardStore.getOwnerInBoardId(boardId) }}</option>
 					<option v-for="member in boardStore.getPeopleInBoardId(boardId)">{{ member }}</option>
 				</select>
-
-				<button @click="handleAddTodo">Add todo</button>
+				<button
+					@click="
+						mode === 'edit'
+							? handleUpdateTask(taskIdForUpdateForm, column.columnId)
+							: handleAddTask(formTodoList, columnId)
+					"
+				>
+					{{ mode === "edit" ? "Update Task" : "Add Task" }}
+				</button>
 			</section>
 			<button
 				v-else
@@ -99,7 +114,7 @@
 					}
 				"
 			>
-				Add Task
+				{{ mode === "edit" ? "Update Task" : "Add Task" }}
 			</button>
 		</li>
 	</ul>
@@ -110,8 +125,11 @@ import { useBoard, useTodolist } from "~/store/useTask";
 import { ref } from "vue";
 const columnName = ref("");
 
+const taskIdForUpdateForm = ref("");
+
 const showForm = ref(false);
 const columnId = ref("");
+const mode = ref("add");
 
 const formTodoList = reactive({
 	taskName: "",
@@ -140,10 +158,41 @@ const handleAddColumn = (column, boardId) => {
 	todolistStore.addColumn(column, boardId);
 	columnName.value = "";
 };
-const handleAddTodo = () => {
-	todolistStore.addTask(formTodoList, columnId.value, boardId);
-	console.log(formTodoList);
+const handleAddTask = () => {
+	todolistStore.addTask(formTodoList, columnId.value);
+
 	showForm.value = false;
 	columnId.value = "";
+	formTodoList.taskName = "";
+	formTodoList.priority = "";
+	formTodoList.dueDate = "";
+	formTodoList.assignee = "";
+};
+
+const handleDeleteTask = (taskId) => {
+	todolistStore.deleteTask(taskId);
+};
+
+const handleEditTask = (taskId, columnid) => {
+	const task = todolistStore.getTaskById(taskId);
+	formTodoList.taskName = task.taskName;
+	formTodoList.priority = task.priority;
+	formTodoList.dueDate = task.dueDate;
+	formTodoList.assignee = task.assignee;
+	columnId.value = columnid;
+	showForm.value = true;
+	mode.value = "edit";
+	taskIdForUpdateForm.value = taskId;
+};
+
+const handleUpdateTask = (taskId) => {
+	todolistStore.updateTask(taskId, formTodoList);
+	showForm.value = false;
+	columnId.value = "";
+	formTodoList.taskName = "";
+	formTodoList.priority = "";
+	formTodoList.dueDate = "";
+	formTodoList.assignee = "";
+	mode.value = "add";
 };
 </script>

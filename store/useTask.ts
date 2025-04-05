@@ -111,20 +111,38 @@ export const useTodolist = (boardId: string) => {
 					taskIds: [],
 				});
 			},
-			addTask(formTodoList: Task, columnId: string, boardId: string) {
+			addTask(formTodoList: Task, columnId: string) {
 				this.task.push({
 					taskId: "task-" + (this.task.length + 1),
 					taskName: formTodoList.taskName,
 					priority: formTodoList.priority,
-					dueDate: formTodoList.dueDate,
+					dueDate: formatDate(formTodoList.dueDate),
 					assignee: formTodoList.assignee,
 				});
+
 				const findIndex = this.columns.findIndex((column) => column.columnId === columnId);
-				this.columns[findIndex].taskIds.push(this.task[this.task.length - 1].taskId);
-				console.log(this.columns[findIndex].taskIds);
+				this.columns[findIndex].taskIds = [...this.columns[findIndex].taskIds, "task-" + this.task.length];
 			},
-			deleteTask() {},
-			updateTask(status: string, taskName: string, dueDate: string, assignee: string, priority: string) {},
+			deleteTask(taskId: string) {
+				console.log(taskId);
+				this.task = this.task.filter((task) => task.taskId !== taskId);
+				const findIndex = this.columns.findIndex((column) => column.taskIds.includes(taskId));
+				const findIndexElementOfColumns = this.columns[findIndex].taskIds.findIndex((task) => task === taskId);
+				this.columns[findIndex].taskIds.splice(findIndexElementOfColumns, 1);
+				console.log(this.columns[findIndex], "column");
+			},
+			updateTask(taskId: string, formTodoList: Task) {
+				const isTaskId = (task: Task) => task.taskId === taskId;
+				const findIndex = this.task.findIndex(isTaskId);
+
+				this.task.splice(findIndex, 1, {
+					taskId,
+					taskName: formTodoList.taskName,
+					priority: formTodoList.priority,
+					dueDate: formatDate(formTodoList.dueDate),
+					assignee: formTodoList.assignee,
+				});
+			},
 		},
 		getters: {
 			getTasks: (state) => {
@@ -138,4 +156,16 @@ export const useTodolist = (boardId: string) => {
 			},
 		},
 	});
+};
+export const formatDate = (dateString?: string): string => {
+	if (!dateString) return "";
+
+	// Split the ISO format date (YYYY-MM-DD)
+	const [year, month, day] = dateString.split("-");
+
+	// Get last 2 digits of year
+	const shortYear = year.slice(-2);
+
+	// Return in DD-MM-YY format
+	return `${day}-${month}-${shortYear}`;
 };
