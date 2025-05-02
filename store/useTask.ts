@@ -12,8 +12,6 @@ export const useAuth = defineStore("auth", {
 				return "User already exist";
 			}
 			this.users.push({ userId: "user-" + this.users.length + 1, name, email, password });
-			const router = useRouter();
-			router.push("/login");
 		},
 		login(email: string, password: string) {
 			const findUser = this.users.find((user) => user.email === email && user.password === password);
@@ -24,8 +22,6 @@ export const useAuth = defineStore("auth", {
 			if (existingEmailUser) {
 				return "User already exists";
 			}
-			const router = useRouter();
-			router.push("/board");
 		},
 		logout() {},
 	},

@@ -1,6 +1,6 @@
 <template>
 	<h2>
-		Login
+		Signup
 		<form
 			@submit.prevent="handleRegister"
 			action=""
