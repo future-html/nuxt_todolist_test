@@ -21,21 +21,27 @@
 			/>
 			<button type="submit">Submit</button>
 		</form>
-		{{ responseFormAuth }}
+		{{ formResponse }}
 	</h2>
 </template>
 
-<script setup>
+<script setup lang="ts">
+definePageMeta({
+	middleware: "board",
+});
 import { useAuth } from "~/store/useTask";
 
 const authStore = useAuth();
 
-const responseFormAuth = ref("");
+const formResponse = ref<string | undefined>("");
 
 const form = reactive({ email: "", password: "" });
 const handleSubmit = () => {
-	const response = authStore.login(form.email, form.password);
-	responseFormAuth.value = response;
-	console.log(response, "response");
+	const errorResponse = authStore.login(form.email, form.password);
+	formResponse.value = errorResponse;
+	if (formResponse.value) {
+		return;
+	}
+	navigateTo("/board");
 };
 </script>

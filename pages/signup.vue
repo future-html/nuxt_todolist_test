@@ -6,6 +6,13 @@
 			action=""
 		>
 			<input
+				type="text"
+				name=""
+				id=""
+				placeholder="enter name"
+				v-model="form.name"
+			/>
+			<input
 				type="email"
 				name=""
 				id=""
@@ -25,19 +32,24 @@
 	</h2>
 </template>
 
-<script setup>
+<script setup lang="ts">
+definePageMeta({
+	middleware: "board",
+});
 import { useAuth } from "~/store/useTask";
 
 const authStore = useAuth();
 
-const responseFormAuth = ref("");
+const responseFormAuth = ref<string>("");
 
-const form = reactive({ email: "", password: "" });
+const form = reactive({ name: "", email: "", password: "" });
 const handleRegister = () => {
-	const response = authStore.register(form.email, form.password);
+	const response = authStore.register(form.name, form.email, form.password);
 	console.log(response);
 	if (response) {
 		responseFormAuth.value = response;
+		return;
 	}
+	navigateTo("/login");
 };
 </script>

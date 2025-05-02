@@ -1,3 +1,9 @@
 export default defineNuxtRouteMiddleware(async (to) => {
-	return navigateTo("/signup");
+	if (process.client) {
+		const currentUser = localStorage.getItem("currentUser");
+		if (!currentUser) {
+			return navigateTo("/login");
+		}
+	}
+	return;
 });
