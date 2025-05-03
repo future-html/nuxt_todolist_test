@@ -9,11 +9,11 @@ function extractId(valueId: string): number {
 	return +valueId;
 }
 
-function getAllKeysFromObjects(arrayOfObjects: Record<string, any>[]): string[] {
+export function getAllKeysFromObjects(arrayOfObjects: Record<string, any>[]): string[] {
 	return arrayOfObjects.flatMap((obj) => Object.keys(obj));
 }
 
-function twoPointerFindIndex(array: string[], idwantTofind: string): number {
+export function twoPointerFindIndex(array: string[], idwantTofind: string): number {
 	let left = 0;
 	let right = array.length - 1;
 
@@ -32,7 +32,7 @@ function twoPointerFindIndex(array: string[], idwantTofind: string): number {
 
 export const useAuth = defineStore("auth", {
 	state: () => ({
-		users: defaultData.users,
+		users: defaultData.users as User[],
 		board: JSONtodolistData as KanbanData,
 	}),
 	actions: {
@@ -93,6 +93,20 @@ export const useAuth = defineStore("auth", {
 			localStorage.removeItem("currentUser");
 		},
 	},
+	getters: {
+		getUserInfoById: (state) => (userId: string) => {
+			if (process.client) {
+				const storedUsers = localStorage.getItem("users");
+				if (storedUsers) {
+					state.users = JSON.parse(storedUsers);
+				}
+				const findUser = twoPointerFindIndex(Object.keys(state.users), userId);
+				const name = state.users[findUser].name;
+				const email = state.users[findUser].email;
+				return { name, email };
+			}
+		},
+	},
 });
 
 export const useBoard = defineStore("board", {
@@ -114,7 +128,7 @@ export const useBoard = defineStore("board", {
 		replaceTask() {},
 	},
 	getters: {
-		getAllUsers: (state) => () => {
+		getAllUsersId: (state) => () => {
 			if (process.client) {
 				const storedBoard = localStorage.getItem("board");
 				if (storedBoard) {
@@ -123,6 +137,16 @@ export const useBoard = defineStore("board", {
 				return Object.keys(state.board);
 			}
 		},
+
+		getNumberOfBoards: (state) => () => {
+			if (process.client) {
+				const storedBoard = localStorage.getItem("board");
+				if (storedBoard) {
+					state.board = JSON.parse(storedBoard);
+				}
+			}
+		},
+
 		getBoard(): [string[], { [boardId: string]: Board }[]] | undefined {
 			if (process.client) {
 				const currentUser = localStorage.getItem("currentUser");
