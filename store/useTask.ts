@@ -136,6 +136,14 @@ export const useBoard = defineStore("board", {
 				const savedData = localStorage.getItem("board");
 				this.board = JSON.parse(savedData ?? JSON.stringify(JSONtodolistData));
 				console.log(this.board, "board latest");
+				console.log(owner);
+				console.log(this.board[owner]);
+
+				this.board[owner].push({ [boardId]: { boardName, members: [], columns: [] } });
+				console.log(this.board[owner], "current user added");
+
+				localStorage.setItem("board", JSON.stringify(this.board));
+				// changes of reactivity
 			}
 		},
 		deleteBoard() {},
