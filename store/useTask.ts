@@ -13,6 +13,22 @@ export function getAllKeysFromObjects(arrayOfObjects: Record<string, any>[]): st
 	return arrayOfObjects.flatMap((obj) => Object.keys(obj));
 }
 
+const getDataLocalStorage = (key: string) => {
+	if (process.client) {
+		const savedData = localStorage.getItem(key);
+		return savedData ? JSON.parse(savedData) : null;
+	}
+	return;
+};
+
+const savedData = (key: string, value: any) => {
+	// type any cause problem when deploy but no affect run dev I'll do it later
+	if (process.client) {
+		localStorage.setItem(key, JSON.stringify(value));
+	}
+};
+
+console.log(getDataLocalStorage("board"), "board response");
 export function twoPointerFindIndex(array: string[], idwantTofind: string): number {
 	let left = 0;
 	let right = array.length - 1;
@@ -114,7 +130,14 @@ export const useBoard = defineStore("board", {
 		board: JSONtodolistData as KanbanData,
 	}),
 	actions: {
-		addBoard() {},
+		addBoard(boardId: string, boardName: string, owner: string) {
+			// const authStore = useAuth(); can use hook to the other hook like react,ts
+			if (process.client) {
+				const savedData = localStorage.getItem("board");
+				this.board = JSON.parse(savedData ?? JSON.stringify(JSONtodolistData));
+				console.log(this.board, "board latest");
+			}
+		},
 		deleteBoard() {},
 		updateBoard() {},
 		addColumn() {},
@@ -323,3 +346,13 @@ display with v-for and
 // 	// Return in DD-MM-YY format
 // 	return `${day}-${month}-${shortYear}`;
 // };
+
+/*
+[{"userId":"user-1","name":"John Doe","email":"john@example.com","password":"password123"},{"userId":"user-2","name":"Jane Smith","email":"jane@example.com","password":"password123"},{"userId":"user-3","name":"Henry Smith","email":"henry@yahoo.com","password":"password123"},{"userId":"user-4","name":"Jane Siisi","email":"gane@examole.com","password":"password123"},{"userId":"user-5","name":"Board User","email":"board@example.com","password":"password123"},{"userId":"user-6","name":"Laura","email":"laura@example.com","password":"password123"},{"userId":"user-7","name":"future","email":"future@example.com","password":"123456"}]
+{"user-1":[{"board-1":{"boardName":"Project Roadmap","members":["user-2","user-5","user-6"],"columns":[{"column-1":{"columnName":"To Do","tasks":[{"task-1":{"taskName":"Design homepage","priority":"high","dueDate":"15-06-23","assignee":"user-2"}},{"task-3":{"taskName":"Implement authentication","priority":"high","dueDate":"10-07-23","assignee":"user-1"}},{"task-7":{"taskName":"Write unit tests","priority":"medium","dueDate":"25-06-23","assignee":"user-5"}}]}},{"column-2":{"columnName":"In Progress","tasks":[{"task-2":{"taskName":"Create API docs","priority":"medium","dueDate":"20-06-23","assignee":"user-5"}},{"task-8":{"taskName":"Fix bugs","priority":"low","dueDate":"30-06-23","assignee":"user-6"}}]}},{"column-3":{"columnName":"Done","tasks":[{"task-4":{"taskName":"Project planning","priority":"medium","dueDate":"01-06-23","assignee":"user-6"}}]}}]}}],"user-2":[{"board-2":{"boardName":"Vue Assignment","members":["user-3","user-4","user-5"],"columns":[{"column-4":{"columnName":"Done","tasks":[{"task-5":{"taskName":"Implement Vue components","priority":"high","dueDate":"10-06-23","assignee":"user-3"}}]}}]}}],"user-3":[{"board-3":{"boardName":"Personal Tasks","members":["user-4","user-6"],"columns":[]}}],"user-4":[{"board-4":{"boardName":"Code with coffee break","members":["user-2","user-5","user-6"],"columns":[{"column-5":{"columnName":"In Progress","tasks":[{"task-6":{"taskName":"Coffee break coding","priority":"low","dueDate":"12-06-23","assignee":"user-4"}}]}}]}}],"user-5":[],"user-6":[],"user-7":[{"board-10":{"boardName":"future","members":[],"columns":[]}},{"board-10":{"boardName":"future","members":[],"columns":[]}},{"board-10":{"boardName":"answer","members":[],"columns":[]}}]}
+{"user-1":[{"board-1":{"boardName":"Project Roadmap","members":["user-2","user-5","user-6"],"columns":[{"column-1":{"columnName":"To Do","tasks":[{"task-1":{"taskName":"Design homepage","priority":"high","dueDate":"15-06-23","assignee":"user-2"}},{"task-3":{"taskName":"Implement authentication","priority":"high","dueDate":"10-07-23","assignee":"user-1"}},{"task-7":{"taskName":"Write unit tests","priority":"medium","dueDate":"25-06-23","assignee":"user-5"}}]}},{"column-2":{"columnName":"In Progress","tasks":[{"task-2":{"taskName":"Create API docs","priority":"medium","dueDate":"20-06-23","assignee":"user-5"}},{"task-8":{"taskName":"Fix bugs","priority":"low","dueDate":"30-06-23","assignee":"user-6"}}]}},{"column-3":{"columnName":"Done","tasks":[{"task-4":{"taskName":"Project planning","priority":"medium","dueDate":"01-06-23","assignee":"user-6"}}]}}]}}],"user-2":[{"board-2":{"boardName":"Vue Assignment","members":["user-3","user-4","user-5"],"columns":[{"column-4":{"columnName":"Done","tasks":[{"task-5":{"taskName":"Implement Vue components","priority":"high","dueDate":"10-06-23","assignee":"user-3"}}]}}]}}],"user-3":[{"board-3":{"boardName":"Personal Tasks","members":["user-4","user-6"],"columns":[]}}],"user-4":[{"board-4":{"boardName":"Code with coffee break","members":["user-2","user-5","user-6"],"columns":[{"column-5":{"columnName":"In Progress","tasks":[{"task-6":{"taskName":"Coffee break coding","priority":"low","dueDate":"12-06-23","assignee":"user-4"}}]}}]}}],"user-5":[],"user-6":[],"user-7":[{"board-10":{"boardName":"future","members":[],"columns":[]}},{"board-10":{"boardName":"future","members":[],"columns":[]}},{"board-10":{"boardName":"answer","members":[],"columns":[]}},{"board-10":{"boardName":"aqnswer","members":[],"columns":[]}},{"board-10":{"boardName":"soosos","members":[],"columns":[]}},{"board-10":{"boardName":"fiitirir","members":[],"columns":[]}},{"board-1746246160749":{"boardName":"firrier","members":[],"columns":[]}},{"board-1746246165382":{"boardName":"firriers[[[s[s[s","members":[],"columns":[]}}]}
+
+
+{"user-1":[{"board-1":{"boardName":"Project Roadmap","members":["user-2","user-5","user-6"],"columns":[{"column-1":{"columnName":"To Do","tasks":[{"task-1":{"taskName":"Design homepage","priority":"high","dueDate":"15-06-23","assignee":"user-2"}},{"task-3":{"taskName":"Implement authentication","priority":"high","dueDate":"10-07-23","assignee":"user-1"}},{"task-7":{"taskName":"Write unit tests","priority":"medium","dueDate":"25-06-23","assignee":"user-5"}}]}},{"column-2":{"columnName":"In Progress","tasks":[{"task-2":{"taskName":"Create API docs","priority":"medium","dueDate":"20-06-23","assignee":"user-5"}},{"task-8":{"taskName":"Fix bugs","priority":"low","dueDate":"30-06-23","assignee":"user-6"}}]}},{"column-3":{"columnName":"Done","tasks":[{"task-4":{"taskName":"Project planning","priority":"medium","dueDate":"01-06-23","assignee":"user-6"}}]}}]}}],"user-2":[{"board-2":{"boardName":"Vue Assignment","members":["user-3","user-4","user-5"],"columns":[{"column-4":{"columnName":"Done","tasks":[{"task-5":{"taskName":"Implement Vue components","priority":"high","dueDate":"10-06-23","assignee":"user-3"}}]}}]}},{"board-1746246498226":{"boardName":"future","members":[],"columns":[]}},{"board-1746247031560":{"boardName":"pappappa","members":[],"columns":[]}},{"board-1746247050266":{"boardName":"","members":[],"columns":[]}},{"board-1746247055202":{"boardName":"pszpppappap","members":[],"columns":[]}}],"user-3":[{"board-3":{"boardName":"Personal Tasks","members":["user-4","user-6"],"columns":[]}}],"user-4":[{"board-4":{"boardName":"Code with coffee break","members":["user-2","user-5","user-6"],"columns":[{"column-5":{"columnName":"In Progress","tasks":[{"task-6":{"taskName":"Coffee break coding","priority":"low","dueDate":"12-06-23","assignee":"user-4"}}]}}]}}],"user-5":[],"user-6":[],"user-7":[{"board-10":{"boardName":"future","members":[],"columns":[]}},{"board-10":{"boardName":"future","members":[],"columns":[]}},{"board-10":{"boardName":"answer","members":[],"columns":[]}},{"board-10":{"boardName":"aqnswer","members":[],"columns":[]}},{"board-10":{"boardName":"soosos","members":[],"columns":[]}},{"board-10":{"boardName":"fiitirir","members":[],"columns":[]}},{"board-1746246160749":{"boardName":"firrier","members":[],"columns":[]}},{"board-1746246165382":{"boardName":"firriers[[[s[s[s","members":[],"columns":[]}},{"board-1746246459525":{"boardName":"pspspspps","members":[],"columns":[]}}]}
+
+*/

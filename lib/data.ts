@@ -244,7 +244,7 @@ export interface Board {
 	}>;
 }
 
-interface UserBoards {
+export interface UserBoards {
 	[boardId: string]: Board;
 }
 
