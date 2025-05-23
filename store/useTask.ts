@@ -13,14 +13,6 @@ export function getAllKeysFromObjects(arrayOfObjects: Record<string, any>[]): st
 	return arrayOfObjects.flatMap((obj) => Object.keys(obj));
 }
 
-const getDataLocalStorage = (key: string) => {
-	if (process.client) {
-		const savedData = localStorage.getItem(key);
-		return savedData ? JSON.parse(savedData) : null;
-	}
-	return;
-};
-
 const savedData = (key: string, value: any) => {
 	// type any cause problem when deploy but no affect run dev I'll do it later
 	if (process.client) {
@@ -28,7 +20,6 @@ const savedData = (key: string, value: any) => {
 	}
 };
 
-console.log(getDataLocalStorage("board"), "board response");
 export function twoPointerFindIndex(array: string[], idwantTofind: string): number {
 	let left = 0;
 	let right = array.length - 1;
@@ -52,7 +43,20 @@ export const useAuth = defineStore("auth", {
 		board: JSONtodolistData as KanbanData,
 	}),
 	actions: {
+		loadInitialData() {
+			if (process.client) {
+				const storedUsers = localStorage.getItem("users");
+				if (storedUsers) {
+					this.users = JSON.parse(storedUsers);
+				}
+				const storedBoard = localStorage.getItem("board");
+				if (storedBoard) {
+					this.board = JSON.parse(storedBoard);
+				}
+			}
+		}, // todo initial load from localStorage
 		register(name: string, email: string, password: string) {
+			this.loadInitialData();
 			if (process.client) {
 				if (this.users.find((user: User) => user.email === email)) {
 					return "User already exist";
@@ -67,46 +71,40 @@ export const useAuth = defineStore("auth", {
 				console.log(newListUser, "new user");
 				localStorage.setItem("users", JSON.stringify(this.users));
 				console.log("user info successfully stored");
-				return;
+				return; // register if there is no problem so route to
 			}
 
 			// this.users.push({ userId: "user-" + this.users.length + 1, name, email, password });
 		},
 		login(email: string, password: string) {
+			this.loadInitialData();
 			if (!process.client) {
 				return "Client side only";
 			}
 			const storedUsers = localStorage.getItem("users");
 			if (storedUsers) {
 				this.users = JSON.parse(storedUsers);
-			}
+			} // get user from localStorage
 			const findUser = this.users.find((user: User) => user.email === email && user.password === password);
 			if (!findUser) {
 				return "Register first";
-			}
+			} // findUser
 			const existingEmailUser = this.users.find((user: User) => user.email === email && user.password !== password);
 			if (existingEmailUser) {
 				return "User already exists and incorrect password";
-			}
+			} // if password mismatch then return error
 			localStorage.setItem("currentUser", JSON.stringify(findUser.userId));
 
-			const boardStored = localStorage.getItem("board");
-			if (boardStored) {
-				this.board = JSON.parse(boardStored);
-			}
+			// if user are not exist in board // create the board update in useBoard cause this hook can get variable
 
-			const listOdUsers = Object.keys(this.board);
-			const findIndex = twoPointerFindIndex(listOdUsers, findUser.userId);
-			if (findIndex === -1) {
-				this.board[findUser.userId] = [];
-			}
-			localStorage.setItem("board", JSON.stringify(this.board));
+			// [{"user-7": []}]
+			// then load in useBoard
 		},
 		logout() {
 			if (!process.client) {
 				return;
 			}
-			localStorage.removeItem("currentUser");
+			localStorage.removeItem("currentUser"); // just remove current user
 		},
 	},
 	getters: {
@@ -130,6 +128,15 @@ export const useBoard = defineStore("board", {
 		board: JSONtodolistData as KanbanData,
 	}),
 	actions: {
+		loadBoardInitialData() {
+			if (process.client) {
+				const storedBoard = localStorage.getItem("board");
+				const currentUser = localStorage.getItem("currentUser");
+				const parsedBoard = JSON.parse(storedBoard!) ?? JSONtodolistData;
+				this.board = parsedBoard;
+				// if not found then add and update the user;
+			}
+		},
 		addBoard(boardId: string, boardName: string, owner: string) {
 			// const authStore = useAuth(); can use hook to the other hook like react,ts
 			if (process.client) {
@@ -155,53 +162,66 @@ export const useBoard = defineStore("board", {
 		replaceTask() {},
 	},
 	getters: {
-		getAllUsersId: (state) => () => {
-			if (process.client) {
-				const storedBoard = localStorage.getItem("board");
-				if (storedBoard) {
-					state.board = JSON.parse(storedBoard);
-				}
-				return Object.keys(state.board);
-			}
-		},
-
-		getNumberOfBoards: (state) => () => {
-			if (process.client) {
-				const storedBoard = localStorage.getItem("board");
-				if (storedBoard) {
-					state.board = JSON.parse(storedBoard);
-				}
-			}
-		},
-
-		getBoard(): [string[], { [boardId: string]: Board }[]] | undefined {
+		getBoardCurrentUser: (state) => () => {
 			if (process.client) {
 				const currentUser = localStorage.getItem("currentUser");
-				if (currentUser) {
-					const boardStored = localStorage.getItem("board");
-					if (boardStored) {
-						this.board = JSON.parse(boardStored);
-					}
-					return [getAllKeysFromObjects(this.board[currentUser]), this.board[currentUser]];
+				console.log(currentUser, "current user");
+				if (!currentUser) {
+					return null;
 				}
+				const storedBoard = localStorage.getItem("board");
+				const parsedBoard = storedBoard ? JSON.parse(storedBoard) : JSONtodolistData;
+				console.log(parsedBoard, "parsed board");
+				state.board = parsedBoard;
+				return state.board[currentUser];
 			}
+			return null;
 		},
-		getColumn:
-			(state) =>
-			(boardId: string): Board | undefined => {
-				if (process.client) {
-					const currentUser = localStorage.getItem("currentUser");
-					if (currentUser) {
-						const boardStored = localStorage.getItem("board");
-						if (boardStored) {
-							state.board = JSON.parse(boardStored);
-						}
-						const listOfKeyBoardId = getAllKeysFromObjects(state.board[currentUser]);
-						const findIndex = twoPointerFindIndex(listOfKeyBoardId, boardId);
-						return state.board[currentUser][findIndex][listOfKeyBoardId[findIndex]];
-					}
-				}
-			},
+		// getAllUsersId: (state) => () => {
+		// 	if (process.client) {
+		// 		const storedBoard = localStorage.getItem("board");
+		// 		if (storedBoard) {
+		// 			state.board = JSON.parse(storedBoard);
+		// 		}
+		// 		return Object.keys(state.board);
+		// 	}
+		// },
+		// getNumberOfBoards: (state) => () => {
+		// 	if (process.client) {
+		// 		const storedBoard = localStorage.getItem("board");
+		// 		if (storedBoard) {
+		// 			state.board = JSON.parse(storedBoard);
+		// 		}
+		// 	}
+		// },
+		// getBoard(): [string[], { [boardId: string]: Board }[]] | undefined {
+		// 	if (process.client) {
+		// 		const currentUser = localStorage.getItem("currentUser");
+		// 		if (currentUser) {
+		// 			const boardStored = localStorage.getItem("board");
+		// 			if (boardStored) {
+		// 				this.board = JSON.parse(boardStored);
+		// 			}
+		// 			return [getAllKeysFromObjects(this.board[currentUser]), this.board[currentUser]];
+		// 		}
+		// 	}
+		// },
+		// getColumn:
+		// 	(state) =>
+		// 	(boardId: string): Board | undefined => {
+		// 		if (process.client) {
+		// 			const currentUser = localStorage.getItem("currentUser");
+		// 			if (currentUser) {
+		// 				const boardStored = localStorage.getItem("board");
+		// 				if (boardStored) {
+		// 					state.board = JSON.parse(boardStored);
+		// 				}
+		// 				const listOfKeyBoardId = getAllKeysFromObjects(state.board[currentUser]);
+		// 				const findIndex = twoPointerFindIndex(listOfKeyBoardId, boardId);
+		// 				return state.board[currentUser][findIndex][listOfKeyBoardId[findIndex]];
+		// 			}
+		// 		}
+		// 	},
 	},
 });
 
@@ -356,7 +376,8 @@ display with v-for and
 {"user-1":[{"board-1":{"boardName":"Project Roadmap","members":["user-2","user-5","user-6"],"columns":[{"column-1":{"columnName":"To Do","tasks":[{"task-1":{"taskName":"Design homepage","priority":"high","dueDate":"15-06-23","assignee":"user-2"}},{"task-3":{"taskName":"Implement authentication","priority":"high","dueDate":"10-07-23","assignee":"user-1"}},{"task-7":{"taskName":"Write unit tests","priority":"medium","dueDate":"25-06-23","assignee":"user-5"}}]}},{"column-2":{"columnName":"In Progress","tasks":[{"task-2":{"taskName":"Create API docs","priority":"medium","dueDate":"20-06-23","assignee":"user-5"}},{"task-8":{"taskName":"Fix bugs","priority":"low","dueDate":"30-06-23","assignee":"user-6"}}]}},{"column-3":{"columnName":"Done","tasks":[{"task-4":{"taskName":"Project planning","priority":"medium","dueDate":"01-06-23","assignee":"user-6"}}]}}]}}],"user-2":[{"board-2":{"boardName":"Vue Assignment","members":["user-3","user-4","user-5"],"columns":[{"column-4":{"columnName":"Done","tasks":[{"task-5":{"taskName":"Implement Vue components","priority":"high","dueDate":"10-06-23","assignee":"user-3"}}]}}]}}],"user-3":[{"board-3":{"boardName":"Personal Tasks","members":["user-4","user-6"],"columns":[]}}],"user-4":[{"board-4":{"boardName":"Code with coffee break","members":["user-2","user-5","user-6"],"columns":[{"column-5":{"columnName":"In Progress","tasks":[{"task-6":{"taskName":"Coffee break coding","priority":"low","dueDate":"12-06-23","assignee":"user-4"}}]}}]}}],"user-5":[],"user-6":[],"user-7":[{"board-10":{"boardName":"future","members":[],"columns":[]}},{"board-10":{"boardName":"future","members":[],"columns":[]}},{"board-10":{"boardName":"answer","members":[],"columns":[]}}]}
 {"user-1":[{"board-1":{"boardName":"Project Roadmap","members":["user-2","user-5","user-6"],"columns":[{"column-1":{"columnName":"To Do","tasks":[{"task-1":{"taskName":"Design homepage","priority":"high","dueDate":"15-06-23","assignee":"user-2"}},{"task-3":{"taskName":"Implement authentication","priority":"high","dueDate":"10-07-23","assignee":"user-1"}},{"task-7":{"taskName":"Write unit tests","priority":"medium","dueDate":"25-06-23","assignee":"user-5"}}]}},{"column-2":{"columnName":"In Progress","tasks":[{"task-2":{"taskName":"Create API docs","priority":"medium","dueDate":"20-06-23","assignee":"user-5"}},{"task-8":{"taskName":"Fix bugs","priority":"low","dueDate":"30-06-23","assignee":"user-6"}}]}},{"column-3":{"columnName":"Done","tasks":[{"task-4":{"taskName":"Project planning","priority":"medium","dueDate":"01-06-23","assignee":"user-6"}}]}}]}}],"user-2":[{"board-2":{"boardName":"Vue Assignment","members":["user-3","user-4","user-5"],"columns":[{"column-4":{"columnName":"Done","tasks":[{"task-5":{"taskName":"Implement Vue components","priority":"high","dueDate":"10-06-23","assignee":"user-3"}}]}}]}}],"user-3":[{"board-3":{"boardName":"Personal Tasks","members":["user-4","user-6"],"columns":[]}}],"user-4":[{"board-4":{"boardName":"Code with coffee break","members":["user-2","user-5","user-6"],"columns":[{"column-5":{"columnName":"In Progress","tasks":[{"task-6":{"taskName":"Coffee break coding","priority":"low","dueDate":"12-06-23","assignee":"user-4"}}]}}]}}],"user-5":[],"user-6":[],"user-7":[{"board-10":{"boardName":"future","members":[],"columns":[]}},{"board-10":{"boardName":"future","members":[],"columns":[]}},{"board-10":{"boardName":"answer","members":[],"columns":[]}},{"board-10":{"boardName":"aqnswer","members":[],"columns":[]}},{"board-10":{"boardName":"soosos","members":[],"columns":[]}},{"board-10":{"boardName":"fiitirir","members":[],"columns":[]}},{"board-1746246160749":{"boardName":"firrier","members":[],"columns":[]}},{"board-1746246165382":{"boardName":"firriers[[[s[s[s","members":[],"columns":[]}}]}
 
+get current user access the key and display the board 
 
 {"user-1":[{"board-1":{"boardName":"Project Roadmap","members":["user-2","user-5","user-6"],"columns":[{"column-1":{"columnName":"To Do","tasks":[{"task-1":{"taskName":"Design homepage","priority":"high","dueDate":"15-06-23","assignee":"user-2"}},{"task-3":{"taskName":"Implement authentication","priority":"high","dueDate":"10-07-23","assignee":"user-1"}},{"task-7":{"taskName":"Write unit tests","priority":"medium","dueDate":"25-06-23","assignee":"user-5"}}]}},{"column-2":{"columnName":"In Progress","tasks":[{"task-2":{"taskName":"Create API docs","priority":"medium","dueDate":"20-06-23","assignee":"user-5"}},{"task-8":{"taskName":"Fix bugs","priority":"low","dueDate":"30-06-23","assignee":"user-6"}}]}},{"column-3":{"columnName":"Done","tasks":[{"task-4":{"taskName":"Project planning","priority":"medium","dueDate":"01-06-23","assignee":"user-6"}}]}}]}}],"user-2":[{"board-2":{"boardName":"Vue Assignment","members":["user-3","user-4","user-5"],"columns":[{"column-4":{"columnName":"Done","tasks":[{"task-5":{"taskName":"Implement Vue components","priority":"high","dueDate":"10-06-23","assignee":"user-3"}}]}}]}},{"board-1746246498226":{"boardName":"future","members":[],"columns":[]}},{"board-1746247031560":{"boardName":"pappappa","members":[],"columns":[]}},{"board-1746247050266":{"boardName":"","members":[],"columns":[]}},{"board-1746247055202":{"boardName":"pszpppappap","members":[],"columns":[]}}],"user-3":[{"board-3":{"boardName":"Personal Tasks","members":["user-4","user-6"],"columns":[]}}],"user-4":[{"board-4":{"boardName":"Code with coffee break","members":["user-2","user-5","user-6"],"columns":[{"column-5":{"columnName":"In Progress","tasks":[{"task-6":{"taskName":"Coffee break coding","priority":"low","dueDate":"12-06-23","assignee":"user-4"}}]}}]}}],"user-5":[],"user-6":[],"user-7":[{"board-10":{"boardName":"future","members":[],"columns":[]}},{"board-10":{"boardName":"future","members":[],"columns":[]}},{"board-10":{"boardName":"answer","members":[],"columns":[]}},{"board-10":{"boardName":"aqnswer","members":[],"columns":[]}},{"board-10":{"boardName":"soosos","members":[],"columns":[]}},{"board-10":{"boardName":"fiitirir","members":[],"columns":[]}},{"board-1746246160749":{"boardName":"firrier","members":[],"columns":[]}},{"board-1746246165382":{"boardName":"firriers[[[s[s[s","members":[],"columns":[]}},{"board-1746246459525":{"boardName":"pspspspps","members":[],"columns":[]}}]}
-
+board that current user are member and is owner 
 */

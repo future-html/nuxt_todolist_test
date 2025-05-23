@@ -244,10 +244,6 @@ export interface Board {
 	}>;
 }
 
-export interface UserBoards {
-	[boardId: string]: Board;
-}
-
 // interface UserData {
 // 	[userId: string]: UserBoards[];
 // }

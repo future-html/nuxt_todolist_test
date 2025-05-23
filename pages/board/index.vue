@@ -12,7 +12,7 @@
 					Logout
 				</button>
 			</div>
-			{{ JSON.stringify(getInfo("board")) }}
+			{{ JSON.stringify(boardStore.getBoardCurrentUser()) }}
 
 			<!-- Boards List -->
 			<!-- <div class="mb-8">
@@ -126,8 +126,7 @@ definePageMeta({
 });
 
 import { useAuth, useBoard } from "~/store/useTask";
-import { JSONtodolistData } from "~/lib/data";
-import type { Board, KanbanData, User, UserBoards } from "~/lib/data";
+
 import { ref, computed } from "vue";
 
 const authStore = useAuth();
@@ -135,19 +134,19 @@ const boardStore = useBoard();
 const inputBoardRef = ref("");
 
 // Get current user ID
-const getInfo = (key: string) => {
-	if (process.client) {
-		const storedBoard = localStorage.getItem(key);
-		return storedBoard ? JSON.parse(storedBoard) : JSONtodolistData;
-	}
-};
+// const getInfo = (key: string) => {
+// 	if (process.client) {
+// 		const storedBoard = localStorage.getItem(key);
+// 		return storedBoard ? JSON.parse(storedBoard) : JSONtodolistData;
+// 	}
+// };
 
 // getInfo function is to show the data dynamically
 // ref is used in  component only
 
-onMounted(() => {
-	console.log(getInfo("board"), "get current user");
-});
+// onMounted(() => {
+// 	console.log(getInfo("board"), "get current user");
+// });
 
 // if (process.client) {
 // 	const storedCurrentUser = localStorage.getItem("currentUser");
@@ -188,7 +187,7 @@ const handleAddBoard = () => {
 	if (!inputBoardRef.value.trim()) return;
 
 	const newBoardId = `board-${Date.now()}`;
-	boardStore.addBoard(newBoardId, inputBoardRef.value.trim(), getInfo("currentUser"));
+	// boardStore.addBoard(newBoardId, inputBoardRef.value.trim(), getInfo("currentUser"));
 	inputBoardRef.value = "";
 };
 
