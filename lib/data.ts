@@ -64,7 +64,7 @@ interface Column {
 	tasks?: Task[];
 }
 
-interface Board {
+export interface Board {
 	boardId: string;
 	boardName: string;
 	members: string[];

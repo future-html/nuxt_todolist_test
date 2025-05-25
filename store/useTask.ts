@@ -177,7 +177,7 @@ export const useBoard = defineStore("board", {
 					return null;
 				}
 
-				const owner = state.board.find((board) => board.userId === currentUser); // object
+				const owner = state.board.find((board) => board.userId === currentUser); // board of owner only
 
 				const memberBoard = state.board.filter((board) => {
 					return (
@@ -186,15 +186,19 @@ export const useBoard = defineStore("board", {
 							return inforBoard.members.includes(currentUser);
 						})
 					);
-				}); // array of object
+				}); // board of member
 
-				return [...[owner], ...memberBoard];
+				if (!owner && memberBoard.length === 0) {
+					return null; // if no board found for current user
+				} else if (!owner && memberBoard.length > 0) {
+					return memberBoard; // if no owner board but have member board
+				} else if (owner && memberBoard.length === 0) {
+					return [owner]; // if have owner board but no member board
+				}
+
+				return [...[owner], ...memberBoard]; // combine both owner and member boards
 				// [{ boardId: "board-1", boardName: "Project Roadmap", members: ["user-2", "user-5", "user-6"] }] ==> result should be
 
-				// if no have board then create the board
-
-				// do the case it have board
-				// if don't know where to add the column from board do anything before this sign up
 				/* 
 
 				const owner = [{boardId:, ....}] ==> key = owner
@@ -207,6 +211,44 @@ export const useBoard = defineStore("board", {
 			}
 
 			return null;
+		},
+		getColumnFromBoardId: (state) => (boardId: string) => {
+			if (process.client) {
+				const currentUser = localStorage.getItem("currentUser");
+				console.log(currentUser, "current user");
+				if (!currentUser) {
+					return null;
+				}
+
+				const owner = state.board.find((board) => board.userId === currentUser);
+				// board of owner only
+
+				// extend to find
+
+				const ownerColumns = owner?.boards?.find((board) => board.boardId === boardId)?.columns || [];
+
+				const memberBoard = state.board.filter((board) => {
+					return (
+						board.boards &&
+						board.boards!.filter((inforBoard) => {
+							return inforBoard.members.includes(currentUser);
+						})
+					);
+				}); // board of member
+
+				const memberColumns = memberBoard.flatMap((board) => {
+					return board.boards?.find((b) => b.boardId === boardId)?.columns || [];
+				}); // get columns from member boards
+
+				if (!owner && memberColumns.length === 0) {
+					return null; // if no columns found for current user
+				} else if (!owner && memberColumns.length > 0) {
+					return memberColumns; // if no owner columns but have member columns
+				} else if (owner && memberColumns.length === 0) {
+					return ownerColumns; // if have owner columns but no member columns
+				}
+				return [...ownerColumns, ...memberColumns]; // combine both owner and member columns
+			}
 		},
 	},
 });

@@ -15,7 +15,7 @@
 			<!-- {{ JSON.stringify(boardStore.getBoardCurrentUser()) }} -->
 
 			<!-- Board List -->
-			<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+			<!-- <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 				<div
 					class="border-2 p-2"
 					v-if="boardStore.getBoardCurrentUser()?.length"
@@ -31,7 +31,7 @@
 					</div>
 				</div>
 				<div v-else>No Board found</div>
-			</div>
+			</div> -->
 
 			<!-- Add Board Form -->
 			<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
@@ -63,6 +63,16 @@
 					</button>
 				</form>
 			</div>
+
+			<GridWrapper>
+				<div v-for="board in boardStore.getBoardCurrentUser()">
+					<BoardInfo
+						:key="board?.userId + board?.boards?.length"
+						v-if="board"
+						:boards="board?.boards"
+					/>
+				</div>
+			</GridWrapper>
 		</section>
 	</main>
 </template>
@@ -71,9 +81,9 @@
 definePageMeta({
 	middleware: "auth",
 });
-
+import GridWrapper from "~/components/GridWrapper/index.vue";
 import { useAuth, useBoard } from "~/store/useTask";
-
+import BoardInfo from "~/components/BoardInfo/index.vue";
 import { ref } from "vue";
 
 const authStore = useAuth();
@@ -92,6 +102,8 @@ const handleLogout = () => {
 	authStore.logout();
 	navigateTo("/login");
 };
+
+console.log(boardStore.getBoardCurrentUser());
 </script>
 
 <style>
