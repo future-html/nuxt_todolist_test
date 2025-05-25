@@ -49,7 +49,7 @@ export const defaultData = {
 console.log(defaultData.users, "defaultData");
 
 // Complete type for your entire data structure
-interface Task {
+export interface Task {
 	taskId: string;
 	taskName: string;
 	priority: "low" | "medium" | "high";
