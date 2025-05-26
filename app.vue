@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { useCounter } from "./store/useCounter";
+// import { useCounter } from "./store/useCounter";
 import { ref, onMounted } from "vue";
 import axios from "axios";
 
-const store = useCounter();
+// const store = useCounter();
 
 // setstate of data to be null
 const data = ref(null);
@@ -22,3 +22,9 @@ onMounted(async () => {
 <template>
 	<NuxtLayout><NuxtPage /></NuxtLayout>
 </template>
+
+<style>
+button {
+	@apply cursor-pointer;
+}
+</style>

@@ -1,5 +1,5 @@
 <template lang="">
-	<section class="absolute p-4 bg-black inset-0 h-full w-full">
+	<section class="absolute overflow-hidden bg-black inset-0 h-full w-full">
 		<div class="relative">
 			<form
 				@submit.prevent="handleAddBoard"
@@ -11,25 +11,41 @@
 		// board ==> id (generated), name, members <br />
 		// column ==> id (genarated), name, // task ==> id(generated), name, priority, dueDate, assignee (use member in
 		that board to select value) -->
-				<h2>This is {{ mode }} {{ itemForManagement }} form</h2>
-				<label for="boardName">BoardName</label>
-				<input
-					type="text"
-					id="boardName"
-					placeholder="Enter Name"
-					v-model="name"
-					required
-				/>
-				<div>
-					Invite member (for board only) <br />
-					- list of userId exept for currentUser and selected User <br />
-					- means all - selected
+				<h2 class="text-3xl font-light mb-3">This is {{ mode }} {{ itemForManagement }} form</h2>
+				<div class="w-full flex flex-col gap-3">
+					<label
+						class="text-xl"
+						for="boardName"
+						>BoardName</label
+					>
+					<input
+						type="text"
+						id="boardName"
+						placeholder="Enter Name"
+						v-model="name"
+						required
+						class="border border-green-500 px-2 py-1.5"
+					/>
 				</div>
-				<div>
-					--taskPriority select
+
+				<div class="mt-2">
+					<h2 class="text-xl">Invite member (for board only)</h2>
+					<div class="text-green-600 mt-2 text-lg font-normal border border-green-600 p-2 inline-block">
+						user-1
+					</div>
+					<div class="text-green-600 mt-2 text-lg font-normal border border-green-600 p-2 inline-block">
+						user-2
+					</div>
+					<div class="text-green-600 mt-2 text-lg font-normal border border-green-600 p-2 inline-block">
+						user-3
+					</div>
+				</div>
+				<div class="mt-2">
+					<h2 class="text-x">--taskPriority select</h2>
+
 					<select
 						v-model="priority"
-						class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:text-white transition-colors"
+						class="w-full mt-2 px-4 py-2 bg-black border border-white"
 					>
 						<option
 							value=""
@@ -48,14 +64,14 @@
 					<input
 						type="date"
 						v-model="dueDate"
-						class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:text-white transition-colors"
+						class="w-full px-4 py-2 bg-black border border-white"
 					/>
 				</div>
 				<div>
 					assignee select
 					<select
 						v-model="assignee"
-						class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:text-white transition-colors"
+						class="w-full mt-2 px-4 py-2 bg-black border border-white"
 					>
 						<option
 							value=""
@@ -79,12 +95,12 @@
 					type="submit"
 					class="bg-green-600 px-3 py-2 rounded-sm"
 				>
-					Add / Edit Board
+					Add / Edit {{ itemForManagement }}
 				</button>
 				<button
 					type="button"
 					@click="emit('closeForm')"
-					class="border-green-600 border px-2 py-1.5 rounded-sm"
+					class="border-green-600 ml-2 border px-2 py-1.5 rounded-sm"
 				>
 					Cancel
 				</button>

@@ -2,12 +2,20 @@
 	<ContainerScreen>
 		<div class="flex justify-between items-center mb-8">
 			<h1 class="text-3xl font-bold text-green-600 dark:text-green-400">Your Boards</h1>
-			<button
-				@click="handleLogout()"
-				class="px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg transition-colors"
-			>
-				Logout
-			</button>
+			<div>
+				<button
+					class="text-white mr-2 rounded-md px-2 py-2 border"
+					@click="handleOpenFormToAdd"
+				>
+					Click to Add Board
+				</button>
+				<button
+					@click="handleLogout()"
+					class="px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg transition-colors"
+				>
+					Logout
+				</button>
+			</div>
 		</div>
 
 		<!-- Add Board Form -->
@@ -26,10 +34,10 @@
 					:key="board?.userId + board?.boards?.length"
 					v-if="board"
 					:boards="board?.boards"
+					:owner="board?.userId"
 				/>
 			</div>
 		</GridWrapper>
-		<button @click="handleOpenFormToAdd">Click to Add Board</button>
 	</ContainerScreen>
 </template>
 

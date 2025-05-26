@@ -1,5 +1,12 @@
 <template>
 	<section class="bg-black text-white min-h-screen p-4">
+		Column:
+		<button
+			@click="handleOpenFormToAdd"
+			class="px-3 py-2 rounded-md cursor-pointer bg-green-600"
+		>
+			Add Column
+		</button>
 		<GridWrapper>
 			<div
 				v-for="eachColumn in boardStore.getColumnFromBoardId(boardId)"
@@ -13,7 +20,7 @@
 				/>
 			</div>
 		</GridWrapper>
-		<button @click="handleOpenFormToAdd">Add Column</button>
+
 		<FormAddTaskOrEditTask
 			v-if="openFormTask"
 			:mode="mode"

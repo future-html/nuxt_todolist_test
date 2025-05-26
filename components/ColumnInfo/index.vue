@@ -1,7 +1,12 @@
 <template>
 	<section>
 		-- columnName: {{ columnName }} -- columnId: {{ columnId }}
-		<button @click="handleOpenFormToAdd">Add Task</button>
+		<button
+			class="bg-green-600 px-3 py-2 rounded-md"
+			@click="handleOpenFormToAdd"
+		>
+			Add Task
+		</button>
 		<FormAddTaskOrEditTask
 			v-if="openFormTask"
 			:mode="mode"
@@ -13,7 +18,7 @@
 			v-if="tasks.length > 0"
 			v-for="task in tasks"
 			:key="task.taskId"
-			class="mb-2"
+			class="mb-2 border mt-2"
 		>
 			--taskName {{ task.taskName }} -- taskId: {{ task.taskId }} --taskPriority: {{ task.priority }} --due date:
 			{{ task.dueDate }} --assigned to: {{ task.assignee || "Unassigned" }}

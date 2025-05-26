@@ -12,7 +12,11 @@
 			:key="eachBoard.boardId"
 			class="mb-4"
 		>
-			<NuxtLink :to="{ name: 'board-boardId', params: { boardId: eachBoard.boardId } }">
+			{{ owner }}'s Board:
+			<NuxtLink
+				class="border px-2 py-2 block"
+				:to="{ name: 'board-boardId', params: { boardId: eachBoard.boardId } }"
+			>
 				-- boardName: {{ eachBoard.boardName }} -- boardId: {{ eachBoard.boardId }} -- members:
 				{{ eachBoard.members.join(", ") }}
 			</NuxtLink>
@@ -40,6 +44,7 @@
 import FormAddTaskOrEditTask from "~/components/FormAddTaskOrEditTask/index.vue";
 defineProps({
 	boards: Object, // type Board
+	owner: String, // type string
 });
 
 const mode = ref<"add" | "edit" | "">("");

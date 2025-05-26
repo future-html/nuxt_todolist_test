@@ -146,14 +146,9 @@ export const useBoard = defineStore("board", {
 		},
 		addBoard(boardId: string, boardName: string, owner: string) {
 			// const authStore = useAuth(); can use hook to the other hook like react,ts
+			this.loadBoardInitialData(); 
 			if (process.client) {
-				const savedData = localStorage.getItem("board");
-				this.board = JSON.parse(savedData ?? JSON.stringify(JSONtodolistData));
-
-				// 	this.board[owner].push({ [boardId]: { boardName, members: [], columns: [] } });
-
-				localStorage.setItem("board", JSON.stringify(this.board));
-				// changes of reactivity
+				this.board
 			}
 		},
 		deleteBoard() {},
@@ -250,6 +245,10 @@ export const useBoard = defineStore("board", {
 				return [...ownerColumns, ...memberColumns]; // combine both owner and member columns
 			}
 		},
+
+
+		
+
 	},
 });
 
