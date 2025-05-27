@@ -29,12 +29,12 @@
 		/>
 
 		<GridWrapper>
-			<div v-for="board in boardStore.getBoardCurrentUser()">
+			<div v-for="board in boardStore.getBoards()">
 				<BoardInfo
-					:key="board?.userId + board?.boards?.length"
+					:key="board?.owner + board?.boardId"
 					v-if="board"
-					:boards="board?.boards"
-					:owner="board?.userId"
+					:board="board"
+					:owner="board?.owner"
 				/>
 			</div>
 		</GridWrapper>
@@ -83,7 +83,9 @@ const handleLogout = () => {
 	navigateTo("/login");
 };
 
-console.log(boardStore.getBoardCurrentUser());
+console.log(boardStore.getColumns(), "getcolumns");
+
+// console.log(boardStore.getBoardCurrentUser());
 </script>
 
 <style>

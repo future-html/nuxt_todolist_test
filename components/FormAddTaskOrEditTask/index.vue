@@ -2,8 +2,8 @@
 	<section class="absolute overflow-hidden bg-black inset-0 h-full w-full">
 		<div class="relative">
 			<form
-				@submit.prevent="handleAddBoard"
-				class="w-[24rem] absolute top-0 left-1/2 transform translate-y-1/4 -translate-x-1/2 bg-black p-6 rounded-lg shadow-lg"
+				@submit.prevent="handleSubmit(mode, itemForManagement)"
+				class="w-[24rem] absolute top-0 left-1/2 transform translate-y-1/2 -translate-x-1/2 bg-black p-6 rounded-lg shadow-lg"
 			>
 				<h2 class="sr-only">Add / Edit Board / Column / Task ==> mode</h2>
 				<!-- // label for input to fill the form and add function prevent submit to the form element <br />// id must not be in
@@ -23,12 +23,14 @@
 						id="boardName"
 						placeholder="Enter Name"
 						v-model="name"
-						required
 						class="border border-green-500 px-2 py-1.5"
 					/>
 				</div>
 
-				<div class="mt-2">
+				<div
+					v-if="itemForManagement === 'board'"
+					class="mt-2"
+				>
 					<h2 class="text-xl">Invite member (for board only)</h2>
 					<div class="text-green-600 mt-2 text-lg font-normal border border-green-600 p-2 inline-block">
 						user-1
@@ -40,7 +42,10 @@
 						user-3
 					</div>
 				</div>
-				<div class="mt-2">
+				<div
+					class="mt-2"
+					v-if="itemForManagement === 'task'"
+				>
 					<h2 class="text-x">--taskPriority select</h2>
 
 					<select
@@ -59,7 +64,7 @@
 						<option value="high">High</option>
 					</select>
 				</div>
-				<div>
+				<div v-if="itemForManagement === 'task'">
 					Due date
 					<input
 						type="date"
@@ -67,7 +72,7 @@
 						class="w-full px-4 py-2 bg-black border border-white"
 					/>
 				</div>
-				<div>
+				<div v-if="itemForManagement === 'task'">
 					assignee select
 					<select
 						v-model="assignee"
@@ -110,12 +115,14 @@
 </template>
 <script setup lang="ts">
 // const mode = ref("add");
+import { useBoard } from "~/store/useTask";
 // const itemForManagement = ref < "board" | "column"| "task">("board");  // use this variable to store in pinia
 const name = ref<string>(""); // use this variable to store in pinia value are work but there is also defineModel
 const member = ref<string>(""); // use this variable to store in pinia
 const priority = ref<"low" | "medium" | "high" | "">(""); //
 const dueDate = ref<Date>(new Date()); //
 const assignee = ref<string>(""); //
+const boardStore = useBoard();
 
 console.log(name.value);
 defineProps({
@@ -132,6 +139,26 @@ defineProps({
 		default: false,
 	},
 });
+
+const handleSubmit = (mode: string, itemForManagement: string) => {
+	// handle the form submission logic here
+	if (mode === "add") {
+		if (itemForManagement === "board") {
+			// Logic to add a new board
+			boardStore.addBoard();
+			emit("closeForm");
+		} else if (itemForManagement === "column") {
+			// Logic to add a new column
+			console.log(`Adding new column with name: ${name.value}`);
+		} else if (itemForManagement === "task") {
+			// Logic to add a new task
+			console.log(
+				`Adding new task with name: ${name.value}, priority: ${priority.value}, due date: ${dueDate.value}, assignee: ${assignee.value}`
+			);
+		}
+	}
+	// You can use the values of name, member, priority, dueDate, and assignee here
+};
 
 const emit = defineEmits(["closeForm"]);
 // should pass the props from parent component !!!!!

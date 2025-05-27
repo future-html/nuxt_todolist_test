@@ -47,256 +47,269 @@ export const defaultData = {
 	],
 };
 console.log(defaultData.users, "defaultData");
-
-// Complete type for your entire data structure
-export interface Task {
-	taskId: string;
-	taskName: string;
-	priority: "low" | "medium" | "high";
-	dueDate: string; // Consider using Date type if you'll parse it
-	assignee: string;
-	tags?: string[]; // Optional tags for tasks
-}
-
-interface Column {
-	columnId: string;
-	columnName: string;
-	tasks?: Task[];
+// Normalized Data Structure
+// Normalized Data Structure with Arrays
+export interface NormalizedKanbanData {
+	boards: Board[];
+	columns: Column[];
+	tasks: Task[];
 }
 
 export interface Board {
 	boardId: string;
 	boardName: string;
-	members: string[];
-	columns?: Column[];
+	owner: string; // userId of the owner
+	members: string[]; // array of userIds
+	columnIds: string[]; // ordered array of columnIds
+	createdAt?: string;
+	updatedAt?: string;
 }
 
-interface UserData {
-	userId: string;
-	boards: Board[];
+interface Column {
+	columnId: string;
+	columnName: string;
+	// reference to parent board
+	taskIds: string[]; // ordered array of taskIds
+	position?: number; // for column ordering
 }
 
-export type KanbanData = UserData[];
-export const allPeople = defaultData.users.map((user) => user.userId);
-export const JSONtodolistData: KanbanData = [
-	{
-		userId: "user-1",
+interface Task {
+	taskId: string;
+	taskName: string;
+	// reference to parent column
+	priority: "low" | "medium" | "high";
+	dueDate: string;
+	assignee: string; // userId
+	tags: string[];
+	description?: string;
+	createdAt?: string;
+	updatedAt?: string;
+}
 
-		boards: [
-			{
-				boardId: "board-1",
-				boardName: "Website Redesign",
-				members: ["user-2", "user-5"],
-				columns: [
-					{
-						columnId: "column-1",
-						columnName: "Backlog",
-						tasks: [
-							{
-								taskId: "task-1",
-								taskName: "UI Wireframes",
-								priority: "high",
-								dueDate: "2023-08-15",
-								assignee: "user-1",
-								tags: ["design", "ux"],
-							},
-						],
-					},
-					{
-						columnId: "column-2",
-						columnName: "In Progress",
-						tasks: [
-							{
-								taskId: "task-2",
-								taskName: "Homepage Development",
-								priority: "high",
-								dueDate: "2023-08-18",
-								assignee: "user-5",
-								tags: ["frontend"],
-							},
-						],
-					},
-				],
-			},
-			{
-				boardId: "board-2",
-				boardName: "Mobile App",
-				members: ["user-3"],
-				columns: [
-					{
-						columnId: "column-3",
-						columnName: "Sprint Backlog",
-						tasks: [
-							{
-								taskId: "task-3",
-								taskName: "User Authentication",
-								priority: "high",
-								dueDate: "2023-08-20",
-								assignee: "user-1",
-								tags: ["security"],
-							},
-						],
-					},
-				],
-			},
-		],
-	},
-	{
-		userId: "user-2",
+// Complete normalized data from your JSON
+export const normalizedData: NormalizedKanbanData = {
+	boards: [
+		{
+			boardId: "board-1",
+			boardName: "Website Redesign",
+			owner: "user-1",
+			members: ["user-2", "user-5"],
+			columnIds: ["column-1", "column-2"],
+		},
+		{
+			boardId: "board-2",
+			boardName: "Mobile App",
+			owner: "user-1",
+			members: ["user-3"],
+			columnIds: ["column-3"],
+		},
+		{
+			boardId: "board-3",
+			boardName: "Marketing Q3",
+			owner: "user-2",
+			members: ["user-1", "user-4"],
+			columnIds: ["column-4"],
+		},
+		{
+			boardId: "board-4",
+			boardName: "Product Launch",
+			owner: "user-2",
+			members: ["user-3", "user-5"],
+			columnIds: ["column-5"],
+		},
+		{
+			boardId: "board-5",
+			boardName: "Content Calendar",
+			owner: "user-3",
+			members: ["user-2"],
+			columnIds: ["column-6"],
+		},
+		{
+			boardId: "board-6",
+			boardName: "Design Projects",
+			owner: "user-4",
+			members: ["user-1", "user-2"],
+			columnIds: ["column-7", "column-8"],
+		},
+		{
+			boardId: "board-7",
+			boardName: "UX Research",
+			owner: "user-4",
+			members: ["user-3"],
+			columnIds: ["column-9"],
+		},
+		{
+			boardId: "board-8",
+			boardName: "Design System",
+			owner: "user-4",
+			members: ["user-1", "user-5"],
+			columnIds: ["column-10"],
+		},
+	],
 
-		boards: [
-			{
-				boardId: "board-3",
-				boardName: "Marketing Q3",
-				members: ["user-1", "user-4"],
-				columns: [
-					{
-						columnId: "column-4",
-						columnName: "Campaigns",
-						tasks: [
-							{
-								taskId: "task-4",
-								taskName: "Social Media Strategy",
-								priority: "medium",
-								dueDate: "2023-07-30",
-								assignee: "user-2",
-								tags: ["content"],
-							},
-						],
-					},
-				],
-			},
-			{
-				boardId: "board-4",
-				boardName: "Product Launch",
-				members: ["user-3", "user-5"],
-				columns: [
-					{
-						columnId: "column-5",
-						columnName: "Timeline",
-						tasks: [
-							{
-								taskId: "task-5",
-								taskName: "Press Release",
-								priority: "high",
-								dueDate: "2023-08-10",
-								assignee: "user-4",
-								tags: ["public-relations"],
-							},
-						],
-					},
-				],
-			},
-		],
-	},
-	{
-		userId: "user-3",
+	columns: [
+		{
+			columnId: "column-1",
+			columnName: "Backlog",
 
-		boards: [
-			{
-				boardId: "board-5",
-				boardName: "Content Calendar",
-				members: ["user-2"],
-				columns: [
-					{
-						columnId: "column-6",
-						columnName: "Drafts",
-						tasks: [
-							{
-								taskId: "task-6",
-								taskName: "React Tutorial",
-								priority: "low",
-								dueDate: "2023-08-05",
-								assignee: "user-3",
-								tags: ["technical-writing"],
-							},
-						],
-					},
-				],
-			},
-		],
-	},
-	{
-		userId: "user-4",
+			taskIds: ["task-1"],
+			position: 0,
+		},
+		{
+			columnId: "column-2",
+			columnName: "In Progress",
 
-		boards: [
-			{
-				boardId: "board-6",
-				boardName: "Design Projects",
-				members: ["user-1", "user-2"],
-				columns: [
-					{
-						columnId: "column-7",
-						columnName: "Requests",
-						tasks: [
-							{
-								taskId: "task-7",
-								taskName: "Logo Redesign",
-								priority: "high",
-								dueDate: "2023-08-01",
-								assignee: "user-4",
-								tags: ["branding"],
-							},
-						],
-					},
-					{
-						columnId: "column-8",
-						columnName: "Completed",
-						tasks: [
-							{
-								taskId: "task-8",
-								taskName: "Business Cards",
-								priority: "medium",
-								dueDate: "2023-07-25",
-								assignee: "user-4",
-								tags: ["print"],
-							},
-						],
-					},
-				],
-			},
-			{
-				boardId: "board-7",
-				boardName: "UX Research",
-				members: ["user-3"],
-				columns: [
-					{
-						columnId: "column-9",
-						columnName: "Findings",
-						tasks: [
-							{
-								taskId: "task-9",
-								taskName: "User Interviews",
-								priority: "medium",
-								dueDate: "2023-08-12",
-								assignee: "user-4",
-								tags: ["research"],
-							},
-						],
-					},
-				],
-			},
-			{
-				boardId: "board-8",
-				boardName: "Design System",
-				members: ["user-1", "user-5"],
-				columns: [
-					{
-						columnId: "column-10",
-						columnName: "Components",
-						tasks: [
-							{
-								taskId: "task-10",
-								taskName: "Button Styles",
-								priority: "low",
-								dueDate: "2023-08-22",
-								assignee: "user-4",
-								tags: ["ui-components"],
-							},
-						],
-					},
-				],
-			},
-		],
-	},
-];
+			taskIds: ["task-2"],
+			position: 1,
+		},
+		{
+			columnId: "column-3",
+			columnName: "Sprint Backlog",
+
+			taskIds: ["task-3"],
+			position: 0,
+		},
+		{
+			columnId: "column-4",
+			columnName: "Campaigns",
+
+			taskIds: ["task-4"],
+			position: 0,
+		},
+		{
+			columnId: "column-5",
+			columnName: "Timeline",
+
+			taskIds: ["task-5"],
+			position: 0,
+		},
+		{
+			columnId: "column-6",
+			columnName: "Drafts",
+
+			taskIds: ["task-6"],
+			position: 0,
+		},
+		{
+			columnId: "column-7",
+			columnName: "Requests",
+
+			taskIds: ["task-7"],
+			position: 0,
+		},
+		{
+			columnId: "column-8",
+			columnName: "Completed",
+
+			taskIds: ["task-8"],
+			position: 1,
+		},
+		{
+			columnId: "column-9",
+			columnName: "Findings",
+
+			taskIds: ["task-9"],
+			position: 0,
+		},
+		{
+			columnId: "column-10",
+			columnName: "Components",
+
+			taskIds: ["task-10"],
+			position: 0,
+		},
+	],
+
+	tasks: [
+		{
+			taskId: "task-1",
+			taskName: "UI Wireframes",
+
+			priority: "high",
+			dueDate: "2023-08-15",
+			assignee: "user-1",
+			tags: ["design", "ux"],
+		},
+		{
+			taskId: "task-2",
+			taskName: "Homepage Development",
+
+			priority: "high",
+			dueDate: "2023-08-18",
+			assignee: "user-5",
+			tags: ["frontend"],
+		},
+		{
+			taskId: "task-3",
+			taskName: "User Authentication",
+
+			priority: "high",
+			dueDate: "2023-08-20",
+			assignee: "user-1",
+			tags: ["security"],
+		},
+		{
+			taskId: "task-4",
+			taskName: "Social Media Strategy",
+
+			priority: "medium",
+			dueDate: "2023-07-30",
+			assignee: "user-2",
+			tags: ["content"],
+		},
+		{
+			taskId: "task-5",
+			taskName: "Press Release",
+
+			priority: "high",
+			dueDate: "2023-08-10",
+			assignee: "user-4",
+			tags: ["public-relations"],
+		},
+		{
+			taskId: "task-6",
+			taskName: "React Tutorial",
+
+			priority: "low",
+			dueDate: "2023-08-05",
+			assignee: "user-3",
+			tags: ["technical-writing"],
+		},
+		{
+			taskId: "task-7",
+			taskName: "Logo Redesign",
+
+			priority: "high",
+			dueDate: "2023-08-01",
+			assignee: "user-4",
+			tags: ["branding"],
+		},
+		{
+			taskId: "task-8",
+			taskName: "Business Cards",
+
+			priority: "medium",
+			dueDate: "2023-07-25",
+			assignee: "user-4",
+			tags: ["print"],
+		},
+		{
+			taskId: "task-9",
+			taskName: "User Interviews",
+
+			priority: "medium",
+			dueDate: "2023-08-12",
+			assignee: "user-4",
+			tags: ["research"],
+		},
+		{
+			taskId: "task-10",
+			taskName: "Button Styles",
+
+			priority: "low",
+			dueDate: "2023-08-22",
+			assignee: "user-4",
+			tags: ["ui-components"],
+		},
+	],
+};

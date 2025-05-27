@@ -9,7 +9,7 @@
 		</button>
 		<GridWrapper>
 			<div
-				v-for="eachColumn in boardStore.getColumnFromBoardId(boardId)"
+				v-for="eachColumn in boardStore.getColumns()"
 				:key="eachColumn.columnId"
 				class="mb-4"
 			>

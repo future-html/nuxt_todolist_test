@@ -1,46 +1,13 @@
 import { defineStore } from "pinia";
-import { defaultData, JSONtodolistData } from "~/lib/data";
-import type { User, KanbanData } from "~/lib/data";
-function extractId(valueId: string): number {
-	const id = valueId.split("-");
-	if (id.length > 1) {
-		return +id[1];
-	}
-	return +valueId;
-}
-
-export function getAllKeysFromObjects(arrayOfObjects: Record<string, any>[]): string[] {
-	return arrayOfObjects.flatMap((obj) => Object.keys(obj));
-}
-
-const savedData = (key: string, value: any) => {
-	// type any cause problem when deploy but no affect run dev I'll do it later
-	if (process.client) {
-		localStorage.setItem(key, JSON.stringify(value));
-	}
-};
-
-export function twoPointerFindIndex(array: string[], idwantTofind: string): number {
-	let left = 0;
-	let right = array.length - 1;
-
-	while (left <= right) {
-		const mid = Math.floor((left + right) / 2);
-		if (extractId(array[mid]) === extractId(idwantTofind)) {
-			return mid;
-		} else if (extractId(array[mid]) < extractId(idwantTofind)) {
-			left = mid + 1;
-		} else {
-			right = mid - 1;
-		}
-	}
-	return -1;
-}
+import { defaultData, normalizedData } from "~/lib/data";
+import type { Board, NormalizedKanbanData, User } from "~/lib/data";
 
 export const useAuth = defineStore("auth", {
 	state: () => ({
 		users: defaultData.users as User[],
-		board: JSONtodolistData as KanbanData,
+		boards: normalizedData.boards,
+		columns: normalizedData.columns,
+		tasks: normalizedData.tasks,
 	}),
 	actions: {
 		loadInitialData() {
@@ -52,7 +19,24 @@ export const useAuth = defineStore("auth", {
 
 				const storedBoard = localStorage.getItem("board");
 				if (storedBoard) {
-					this.board = JSON.parse(storedBoard);
+					this.boards = JSON.parse(storedBoard);
+				} else if (!storedBoard) {
+					this.boards = normalizedData.boards; // if no board then set to default
+					localStorage.setItem("board", JSON.stringify(this.boards));
+				}
+				const storedColumn = localStorage.getItem("column");
+				if (storedColumn) {
+					this.columns = JSON.parse(storedColumn);
+				} else if (!storedColumn) {
+					this.columns = normalizedData.columns; // if no column then set to default
+					localStorage.setItem("column", JSON.stringify(this.columns));
+				}
+				const storedTasks = localStorage.getItem("tasks");
+				if (storedTasks) {
+					this.tasks = JSON.parse(storedTasks);
+				} else if (!storedTasks) {
+					this.tasks = normalizedData.tasks; // if no tasks then set to default
+					localStorage.setItem("tasks", JSON.stringify(this.tasks));
 				}
 			}
 		}, // todo initial load from localStorage
@@ -96,6 +80,27 @@ export const useAuth = defineStore("auth", {
 			} // if password mismatch then return error
 			localStorage.setItem("currentUser", JSON.stringify(findUser.userId));
 
+			const storedBoard = localStorage.getItem("board");
+			if (storedBoard) {
+				this.boards = JSON.parse(storedBoard);
+			} else if (!storedBoard) {
+				this.boards = normalizedData.boards; // if no board then set to default
+				localStorage.setItem("board", JSON.stringify(this.boards));
+			}
+			const storedColumn = localStorage.getItem("column");
+			if (storedColumn) {
+				this.columns = JSON.parse(storedColumn);
+			} else if (!storedColumn) {
+				this.columns = normalizedData.columns; // if no column then set to default
+				localStorage.setItem("column", JSON.stringify(this.columns));
+			}
+			const storedTasks = localStorage.getItem("tasks");
+			if (storedTasks) {
+				this.tasks = JSON.parse(storedTasks);
+			} else if (!storedTasks) {
+				this.tasks = normalizedData.tasks; // if no tasks then set to default
+				localStorage.setItem("tasks", JSON.stringify(this.tasks));
+			}
 			// if user are not exist in board // create the board update in useBoard cause this hook can get variable
 
 			// [{"user-7": []}]
@@ -115,10 +120,10 @@ export const useAuth = defineStore("auth", {
 				if (storedUsers) {
 					state.users = JSON.parse(storedUsers);
 				}
-				const findUser = twoPointerFindIndex(Object.keys(state.users), userId);
-				const name = state.users[findUser].name;
-				const email = state.users[findUser].email;
-				return { name, email };
+
+				// const name = state.users[findUser].name;
+				// const email = state.users[findUser].email;
+				// return { name, email };
 			}
 		},
 		getAllUserId: (state) => () => {
@@ -131,130 +136,50 @@ export const useAuth = defineStore("auth", {
 
 export const useBoard = defineStore("board", {
 	state: () => ({
-		board: JSONtodolistData as KanbanData,
+		boards: normalizedData.boards,
+		columns: normalizedData.columns,
+		tasks: normalizedData.tasks,
 	}),
 	actions: {
-		loadBoardInitialData() {
-			if (process.client) {
-				const storedBoard = localStorage.getItem("board");
-				const currentUser = localStorage.getItem("currentUser");
-				// if no currentuser then add and set storage
-				const parsedBoard = JSON.parse(storedBoard!) ?? JSONtodolistData;
-				this.board = parsedBoard;
-				// if not found then add and update the user;
-			}
-		},
-		addBoard(boardId: string, boardName: string, owner: string) {
-			// const authStore = useAuth(); can use hook to the other hook like react,ts
-			this.loadBoardInitialData(); 
-			if (process.client) {
-				this.board
-			}
-		},
-		deleteBoard() {},
-		updateBoard() {},
-		addColumn() {},
-		deleteColumn() {},
-		updateColumn() {},
-		addTask() {},
-		deleteTask() {},
-		updateTask() {},
-		inviteMember() {},
-		removeMember() {},
-		replaceTask() {},
+		loadInitialData() {},
+		addItem() {},
+		deleteItem() {},
+		updateItem() {}, // want to do ????
 	},
 	getters: {
-		getBoardCurrentUser: (state) => () => {
-			if (process.client) {
-				const currentUser = localStorage.getItem("currentUser");
-				console.log(currentUser, "current user");
-				if (!currentUser) {
-					return null;
-				}
-
-				const owner = state.board.find((board) => board.userId === currentUser); // board of owner only
-
-				const memberBoard = state.board.filter((board) => {
-					return (
-						board.boards &&
-						board.boards!.filter((inforBoard) => {
-							return inforBoard.members.includes(currentUser);
-						})
-					);
-				}); // board of member
-
-				if (!owner && memberBoard.length === 0) {
-					return null; // if no board found for current user
-				} else if (!owner && memberBoard.length > 0) {
-					return memberBoard; // if no owner board but have member board
-				} else if (owner && memberBoard.length === 0) {
-					return [owner]; // if have owner board but no member board
-				}
-
-				return [...[owner], ...memberBoard]; // combine both owner and member boards
-				// [{ boardId: "board-1", boardName: "Project Roadmap", members: ["user-2", "user-5", "user-6"] }] ==> result should be
-
-				/* 
-
-				const owner = [{boardId:, ....}] ==> key = owner
-				const member = loop that member include currentUserId 
-				loop the user id list ==> get all list of user from useAuth; 
-				
-				*/
-				//const owner = state.board[currentUser] ?? [];
-				// if no
+		getBoards: (state) => () => {
+			if (!process.client) {
+				return;
 			}
+			const userId = localStorage.getItem("currentUser")!;
 
-			return null;
+			console.log(state.boards, "boards");
+			const owner = state.boards.filter((board) => board.owner === JSON.parse(userId));
+			const members = state.boards.filter((board) => board.members.includes(JSON.parse(userId)));
+			console.log(owner, "owner");
+			console.log(members, "members");
+			return [...owner, ...members];
 		},
-		getColumnFromBoardId: (state) => (boardId: string) => {
-			if (process.client) {
-				const currentUser = localStorage.getItem("currentUser");
-				console.log(currentUser, "current user");
-				if (!currentUser) {
-					return null;
-				}
-
-				const owner = state.board.find((board) => board.userId === currentUser);
-				// board of owner only
-
-				// extend to find
-
-				const ownerColumns = owner?.boards?.find((board) => board.boardId === boardId)?.columns || [];
-
-				const memberBoard = state.board.filter((board) => {
-					return (
-						board.boards &&
-						board.boards!.filter((inforBoard) => {
-							return inforBoard.members.includes(currentUser);
-						})
-					);
-				}); // board of member
-
-				const memberColumns = memberBoard.flatMap((board) => {
-					return board.boards?.find((b) => b.boardId === boardId)?.columns || [];
-				}); // get columns from member boards
-
-				if (!owner && memberColumns.length === 0) {
-					return null; // if no columns found for current user
-				} else if (!owner && memberColumns.length > 0) {
-					return memberColumns; // if no owner columns but have member columns
-				} else if (owner && memberColumns.length === 0) {
-					return ownerColumns; // if have owner columns but no member columns
-				}
-				return [...ownerColumns, ...memberColumns]; // combine both owner and member columns
-			}
+		getColumns: (state) => () => {
+			const boardId = "board-1"; // Nuxtlink params
+			const boardSelectedClickNextPage = state.boards.find((board) => board.boardId === boardId) as Board;
+			const columnIds = boardSelectedClickNextPage["columnIds"];
+			console.log(columnIds); // ['column-1', 'column-2']
+			const columnsInfoSelected = state.columns.filter((column) => columnIds.includes(column.columnId));
+			return columnsInfoSelected; // return array of column object
+			// state.columns.filter((column) => );
 		},
-
-
-		
-
+		getTasks: (state) => () => {},
 	},
 });
-
+//
 /*
 
 
 try to tell the type don't think in mind try to grasp the information u understand as least as possible.
 crud operation then optimization
+[{"userId":"user-1","boards":[{"boardId":"board-1","boardName":"Website Redesign","members":["user-2","user-5"],"columns":[{"columnId":"column-1","columnName":"Backlog","tasks":[{"taskId":"task-1","taskName":"UI Wireframes","priority":"high","dueDate":"2023-08-15","assignee":"user-1","tags":["design","ux"]}]},{"columnId":"column-2","columnName":"In Progress","tasks":[{"taskId":"task-2","taskName":"Homepage Development","priority":"high","dueDate":"2023-08-18","assignee":"user-5","tags":["frontend"]}]}]},{"boardId":"board-2","boardName":"Mobile App","members":["user-3"],"columns":[{"columnId":"column-3","columnName":"Sprint Backlog","tasks":[{"taskId":"task-3","taskName":"User Authentication","priority":"high","dueDate":"2023-08-20","assignee":"user-1","tags":["security"]}]}]},{"boardId":"board-12345","boardName":"something","members":[]},{"boardId":"board-12345","boardName":"something","members":[]},{"boardId":"board-12345","boardName":"something","members":[]}]},{"userId":"user-2","boards":[{"boardId":"board-3","boardName":"Marketing Q3","members":["user-1","user-4"],"columns":[{"columnId":"column-4","columnName":"Campaigns","tasks":[{"taskId":"task-4","taskName":"Social Media Strategy","priority":"medium","dueDate":"2023-07-30","assignee":"user-2","tags":["content"]}]}]},{"boardId":"board-4","boardName":"Product Launch","members":["user-3","user-5"],"columns":[{"columnId":"column-5","columnName":"Timeline","tasks":[{"taskId":"task-5","taskName":"Press Release","priority":"high","dueDate":"2023-08-10","assignee":"user-4","tags":["public-relations"]}]}]}]},{"userId":"user-3","boards":[{"boardId":"board-5","boardName":"Content Calendar","members":["user-2"],"columns":[{"columnId":"column-6","columnName":"Drafts","tasks":[{"taskId":"task-6","taskName":"React Tutorial","priority":"low","dueDate":"2023-08-05","assignee":"user-3","tags":["technical-writing"]}]}]}]},{"userId":"user-4","boards":[{"boardId":"board-6","boardName":"Design Projects","members":["user-1","user-2"],"columns":[{"columnId":"column-7","columnName":"Requests","tasks":[{"taskId":"task-7","taskName":"Logo Redesign","priority":"high","dueDate":"2023-08-01","assignee":"user-4","tags":["branding"]}]},{"columnId":"column-8","columnName":"Completed","tasks":[{"taskId":"task-8","taskName":"Business Cards","priority":"medium","dueDate":"2023-07-25","assignee":"user-4","tags":["print"]}]}]},{"boardId":"board-7","boardName":"UX Research","members":["user-3"],"columns":[{"columnId":"column-9","columnName":"Findings","tasks":[{"taskId":"task-9","taskName":"User Interviews","priority":"medium","dueDate":"2023-08-12","assignee":"user-4","tags":["research"]}]}]},{"boardId":"board-8","boardName":"Design System","members":["user-1","user-5"],"columns":[{"columnId":"column-10","columnName":"Components","tasks":[{"taskId":"task-10","taskName":"Button Styles","priority":"low","dueDate":"2023-08-22","assignee":"user-4","tags":["ui-components"]}]}]}]}]
+
+[{"userId":"user-1","boards":[{"boardId":"board-1","boardName":"Website Redesign","members":["user-2","user-5"],"columns":[{"columnId":"column-1","columnName":"Backlog","tasks":[{"taskId":"task-1","taskName":"UI Wireframes","priority":"high","dueDate":"2023-08-15","assignee":"user-1","tags":["design","ux"]}]},{"columnId":"column-2","columnName":"In Progress","tasks":[{"taskId":"task-2","taskName":"Homepage Development","priority":"high","dueDate":"2023-08-18","assignee":"user-5","tags":["frontend"]}]}]},{"boardId":"board-2","boardName":"Mobile App","members":["user-3"],"columns":[{"columnId":"column-3","columnName":"Sprint Backlog","tasks":[{"taskId":"task-3","taskName":"User Authentication","priority":"high","dueDate":"2023-08-20","assignee":"user-1","tags":["security"]}]}]}]},{"userId":"user-2","boards":[{"boardId":"board-3","boardName":"Marketing Q3","members":["user-1","user-4"],"columns":[{"columnId":"column-4","columnName":"Campaigns","tasks":[{"taskId":"task-4","taskName":"Social Media Strategy","priority":"medium","dueDate":"2023-07-30","assignee":"user-2","tags":["content"]}]}]},{"boardId":"board-4","boardName":"Product Launch","members":["user-3","user-5"],"columns":[{"columnId":"column-5","columnName":"Timeline","tasks":[{"taskId":"task-5","taskName":"Press Release","priority":"high","dueDate":"2023-08-10","assignee":"user-4","tags":["public-relations"]}]}]}]},{"userId":"user-3","boards":[{"boardId":"board-5","boardName":"Content Calendar","members":["user-2"],"columns":[{"columnId":"column-6","columnName":"Drafts","tasks":[{"taskId":"task-6","taskName":"React Tutorial","priority":"low","dueDate":"2023-08-05","assignee":"user-3","tags":["technical-writing"]}]}]}]},{"userId":"user-4","boards":[{"boardId":"board-6","boardName":"Design Projects","members":["user-1","user-2"],"columns":[{"columnId":"column-7","columnName":"Requests","tasks":[{"taskId":"task-7","taskName":"Logo Redesign","priority":"high","dueDate":"2023-08-01","assignee":"user-4","tags":["branding"]}]},{"columnId":"column-8","columnName":"Completed","tasks":[{"taskId":"task-8","taskName":"Business Cards","priority":"medium","dueDate":"2023-07-25","assignee":"user-4","tags":["print"]}]}]},{"boardId":"board-7","boardName":"UX Research","members":["user-3"],"columns":[{"columnId":"column-9","columnName":"Findings","tasks":[{"taskId":"task-9","taskName":"User Interviews","priority":"medium","dueDate":"2023-08-12","assignee":"user-4","tags":["research"]}]}]},{"boardId":"board-8","boardName":"Design System","members":["user-1","user-5"],"columns":[{"columnId":"column-10","columnName":"Components","tasks":[{"taskId":"task-10","taskName":"Button Styles","priority":"low","dueDate":"2023-08-22","assignee":"user-4","tags":["ui-components"]}]}]}]}]
+
 */

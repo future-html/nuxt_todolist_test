@@ -8,17 +8,16 @@
 			item-for-management="board"
 		/>
 		<div
-			v-for="eachBoard in boards"
-			:key="eachBoard.boardId"
+			:key="board.boardId"
 			class="mb-4"
 		>
 			{{ owner }}'s Board:
 			<NuxtLink
 				class="border px-2 py-2 block"
-				:to="{ name: 'board-boardId', params: { boardId: eachBoard.boardId } }"
+				:to="{ name: 'board-boardId', params: { boardId: board.boardId } }"
 			>
-				-- boardName: {{ eachBoard.boardName }} -- boardId: {{ eachBoard.boardId }} -- members:
-				{{ eachBoard.members.join(", ") }}
+				-- boardName: {{ board.boardName }} -- boardId: {{ board.boardId }} -- members:
+				{{ board.members.join(", ") }}
 			</NuxtLink>
 
 			<button
@@ -30,7 +29,7 @@
 			</button>
 			<button
 				type="button"
-				@click=""
+				@click="handleDeleteBoard()"
 				class="border-green-600 border px-2 py-1.5 rounded-sm"
 			>
 				Delete
@@ -42,8 +41,9 @@
 // import type { Board } from "~/lib/data";
 // import BoardCard from "~/components/BoardCard/index.vue";
 import FormAddTaskOrEditTask from "~/components/FormAddTaskOrEditTask/index.vue";
+import { useBoard } from "~/store/useTask";
 defineProps({
-	boards: Object, // type Board
+	board: Object, // type Board
 	owner: String, // type string
 });
 
@@ -57,5 +57,13 @@ const handleOpenFormToEdit = () => {
 const handleCloseForm = () => {
 	openFormTask.value = false;
 	mode.value = "";
+};
+
+const boardStore = useBoard();
+
+const handleDeleteBoard = () => {
+	// Implement the logic to delete the board
+
+	console.log("Delete board logic goes here");
 };
 </script>
