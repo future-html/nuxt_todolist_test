@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { defaultData, normalizedData } from "~/lib/data";
-import type { Board, NormalizedKanbanData, User } from "~/lib/data";
+import type { Board, Column, NormalizedKanbanData, User } from "~/lib/data";
 
 export const useAuth = defineStore("auth", {
 	state: () => ({
@@ -169,7 +169,13 @@ export const useBoard = defineStore("board", {
 			return columnsInfoSelected; // return array of column object
 			// state.columns.filter((column) => );
 		},
-		getTasks: (state) => () => {},
+		getTasks: (state) => () => {
+			const columnId = "column-1";
+			const selectedColumn = state.columns.find((column) => column.columnId === columnId) as Column;
+			const taskIds = selectedColumn["taskIds"];
+			const taskInfoSelected = state.tasks.filter((task) => taskIds.includes(task.taskId));
+			return taskInfoSelected; // return array of task object
+		},
 	},
 });
 //

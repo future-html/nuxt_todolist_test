@@ -65,7 +65,7 @@ export interface Board {
 	updatedAt?: string;
 }
 
-interface Column {
+export interface Column {
 	columnId: string;
 	columnName: string;
 	// reference to parent board
