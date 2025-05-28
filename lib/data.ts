@@ -73,7 +73,7 @@ export interface Column {
 	position?: number; // for column ordering
 }
 
-interface Task {
+export interface Task {
 	taskId: string;
 	taskName: string;
 	// reference to parent column

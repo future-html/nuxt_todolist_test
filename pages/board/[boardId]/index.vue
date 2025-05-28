@@ -9,14 +9,14 @@
 		</button>
 		<GridWrapper>
 			<div
-				v-for="eachColumn in boardStore.getColumns()"
+				v-for="eachColumn in boardStore.getColumns(boardId)"
 				:key="eachColumn.columnId"
 				class="mb-4"
 			>
 				<ColumnInfo
 					:columnName="eachColumn.columnName"
 					:columnId="eachColumn.columnId"
-					:tasks="eachColumn.tasks"
+					:tasks="boardStore.getTasks(eachColumn.columnId)"
 				/>
 			</div>
 		</GridWrapper>

@@ -83,9 +83,9 @@ const handleLogout = () => {
 	navigateTo("/login");
 };
 
-console.log(boardStore.getColumns(), "getcolumns");
+// console.log(boardStore.getColumns(), "getcolumns");
 
-console.log(boardStore.getTasks(), "getTasks");
+// console.log(boardStore.getTasks(), "getTasks");
 // console.log(boardStore.getBoardCurrentUser());
 </script>
 

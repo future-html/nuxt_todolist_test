@@ -32,13 +32,34 @@
 					class="mt-2"
 				>
 					<h2 class="text-xl">Invite member (for board only)</h2>
-					<div class="text-green-600 mt-2 text-lg font-normal border border-green-600 p-2 inline-block">
+					<div
+						@click="handleChangeMemberIncludeOrnot('user-1')"
+						:class="
+							boardMember.includes('user-1') // pass this argument
+								? 'text-green-600 mt-2 text-lg font-normal border border-green-600 p-2 inline-block'
+								: 'text-black mt-2 text-lg font-normal border border-white p-2 inline-block'
+						"
+					>
 						user-1
 					</div>
-					<div class="text-green-600 mt-2 text-lg font-normal border border-green-600 p-2 inline-block">
+					<div
+						@click="handleChangeMemberIncludeOrnot('user-2')"
+						:class="
+							boardMember.includes('user-2')
+								? 'text-green-600 mt-2 text-lg font-normal border border-green-600 p-2 inline-block'
+								: 'text-black mt-2 text-lg font-normal border border-white p-2 inline-block'
+						"
+					>
 						user-2
 					</div>
-					<div class="text-green-600 mt-2 text-lg font-normal border border-green-600 p-2 inline-block">
+					<div
+						@click="handleChangeMemberIncludeOrnot('user-3')"
+						:class="
+							boardMember.includes('user-3')
+								? 'text-green-600 mt-2 text-lg font-normal border border-green-600 p-2 inline-block'
+								: 'text-black mt-2 text-lg font-normal border border-white p-2 inline-block'
+						"
+					>
 						user-3
 					</div>
 				</div>
@@ -123,6 +144,7 @@ const priority = ref<"low" | "medium" | "high" | "">(""); //
 const dueDate = ref<Date>(new Date()); //
 const assignee = ref<string>(""); //
 const boardStore = useBoard();
+const boardMember = ref<string[]>([]);
 
 console.log(name.value);
 defineProps({
@@ -140,12 +162,63 @@ defineProps({
 	},
 });
 
+const handleChangeMemberIncludeOrnot = (userId: string) => {
+	if (boardMember.value.includes(userId)) {
+		// const findIndex = boardMember.value.findIndex((elementId) => elementId === userId); // return ['user-1', 'user-2' ,......]
+		// console.log(findIndex, "findIndex");
+		const originalBoardMemberInvite = [...boardMember.value];
+		// console.log(originalBoardMemberInvite, "original array");
+
+		boardMember.value = originalBoardMemberInvite.filter((elementId) => elementId !== userId);
+		// console.log(boardMember.value, "boardmemeber value");
+	} else if (!boardMember.value.includes(userId)) {
+		const originalArrayBoardMember = [...boardMember.value];
+		originalArrayBoardMember.push(userId);
+		boardMember.value = originalArrayBoardMember;
+		// console.log(boardMember.value, "board member");
+	}
+};
+
+// boardMember.includes('user-1') ? boardMember.remove('user-1') : boardMember.push('user-1')
+
 const handleSubmit = (mode: string, itemForManagement: string) => {
 	// handle the form submission logic here
 	if (mode === "add") {
 		if (itemForManagement === "board") {
 			// Logic to add a new board
-			boardStore.addBoard();
+			boardStore.addItem(name.value, boardMember.value);
+			emit("closeForm");
+			boardMember.value = [];
+		} else if (itemForManagement === "column") {
+			// Logic to add a new column
+			console.log(`Adding new column with name: ${name.value}`);
+		} else if (itemForManagement === "task") {
+			// Logic to add a new task
+			console.log(
+				`Adding new task with name: ${name.value}, priority: ${priority.value}, due date: ${dueDate.value}, assignee: ${assignee.value}`
+			);
+		}
+	}
+	if (mode === "edit") {
+		if (itemForManagement === "board") {
+			// Logic to add a new board
+			boardStore.addItem(name.value, boardMember.value);
+			emit("closeForm");
+			boardMember.value = [];
+		} else if (itemForManagement === "column") {
+			// Logic to add a new column
+			console.log(`Adding new column with name: ${name.value}`);
+		} else if (itemForManagement === "task") {
+			// Logic to add a new task
+			console.log(
+				`Adding new task with name: ${name.value}, priority: ${priority.value}, due date: ${dueDate.value}, assignee: ${assignee.value}`
+			);
+		}
+	}
+	if (mode === "delete") {
+		if (itemForManagement === "board") {
+			// Logic to add a new board
+			boardStore.addItem(name.value, boardMember.value);
 			emit("closeForm");
 		} else if (itemForManagement === "column") {
 			// Logic to add a new column
@@ -157,6 +230,7 @@ const handleSubmit = (mode: string, itemForManagement: string) => {
 			);
 		}
 	}
+
 	// You can use the values of name, member, priority, dueDate, and assignee here
 };
 
