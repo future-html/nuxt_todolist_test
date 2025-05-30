@@ -11,7 +11,7 @@
 		// board ==> id (generated), name, members <br />
 		// column ==> id (genarated), name, // task ==> id(generated), name, priority, dueDate, assignee (use member in
 		that board to select value) -->
-				<h2 class="text-3xl font-light mb-3">This is {{ mode }} {{ itemForManagement }} form</h2>
+				<h2 class="text-3xl font-light mb-3">{{ mode }} {{ itemForManagement }} form</h2>
 				<div class="w-full flex flex-col gap-3">
 					<label
 						class="text-xl"

@@ -27,4 +27,7 @@ onMounted(async () => {
 button {
 	@apply cursor-pointer;
 }
+input {
+	@apply outline-none;
+}
 </style>

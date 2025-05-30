@@ -153,70 +153,60 @@ export const normalizedData: NormalizedKanbanData = {
 			columnName: "Backlog",
 
 			taskIds: ["task-1"],
-			position: 0,
 		},
 		{
 			columnId: "column-2",
 			columnName: "In Progress",
 
 			taskIds: ["task-2"],
-			position: 1,
 		},
 		{
 			columnId: "column-3",
 			columnName: "Sprint Backlog",
 
 			taskIds: ["task-3"],
-			position: 0,
 		},
 		{
 			columnId: "column-4",
 			columnName: "Campaigns",
 
 			taskIds: ["task-4"],
-			position: 0,
 		},
 		{
 			columnId: "column-5",
 			columnName: "Timeline",
 
 			taskIds: ["task-5"],
-			position: 0,
 		},
 		{
 			columnId: "column-6",
 			columnName: "Drafts",
 
 			taskIds: ["task-6"],
-			position: 0,
 		},
 		{
 			columnId: "column-7",
 			columnName: "Requests",
 
 			taskIds: ["task-7"],
-			position: 0,
 		},
 		{
 			columnId: "column-8",
 			columnName: "Completed",
 
 			taskIds: ["task-8"],
-			position: 1,
 		},
 		{
 			columnId: "column-9",
 			columnName: "Findings",
 
 			taskIds: ["task-9"],
-			position: 0,
 		},
 		{
 			columnId: "column-10",
 			columnName: "Components",
 
 			taskIds: ["task-10"],
-			position: 0,
 		},
 	],
 

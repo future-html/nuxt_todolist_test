@@ -87,6 +87,7 @@ const handleLogout = () => {
 
 // console.log(boardStore.getTasks(), "getTasks");
 // console.log(boardStore.getBoardCurrentUser());
+// if can duplicate filter can be great option rather than splice
 </script>
 
 <style>
