@@ -29,7 +29,7 @@
 		/>
 
 		<GridWrapper>
-			<div v-for="board in boardStore.getBoards()">
+			<div v-for="board in boardStore.getBoardByUserId()">
 				<BoardInfo
 					:key="board?.owner + board?.boardId"
 					v-if="board"
@@ -83,6 +83,7 @@ const handleLogout = () => {
 	navigateTo("/login");
 };
 
+console.log(boardStore.getBoardByUserId());
 // console.log(boardStore.getColumns(), "getcolumns");
 
 // console.log(boardStore.getTasks(), "getTasks");

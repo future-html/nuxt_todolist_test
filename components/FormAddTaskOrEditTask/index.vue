@@ -183,57 +183,16 @@ const handleChangeMemberIncludeOrnot = (userId: string) => {
 
 const handleSubmit = (mode: string, itemForManagement: string) => {
 	// handle the form submission logic here
+
 	if (mode === "add") {
-		if (itemForManagement === "board") {
-			// Logic to add a new board
-			boardStore.addItem(name.value, boardMember.value);
-			emit("closeForm");
-			boardMember.value = [];
-		} else if (itemForManagement === "column") {
-			// Logic to add a new column
-			console.log(`Adding new column with name: ${name.value}`);
-		} else if (itemForManagement === "task") {
-			// Logic to add a new task
-			console.log(
-				`Adding new task with name: ${name.value}, priority: ${priority.value}, due date: ${dueDate.value}, assignee: ${assignee.value}`
-			);
-		}
-	}
-	if (mode === "edit") {
-		if (itemForManagement === "board") {
-			// Logic to add a new board
-			boardStore.addItem(name.value, boardMember.value);
-			emit("closeForm");
-			boardMember.value = [];
-		} else if (itemForManagement === "column") {
-			// Logic to add a new column
-			console.log(`Adding new column with name: ${name.value}`);
-		} else if (itemForManagement === "task") {
-			// Logic to add a new task
-			console.log(
-				`Adding new task with name: ${name.value}, priority: ${priority.value}, due date: ${dueDate.value}, assignee: ${assignee.value}`
-			);
-		}
-	}
-	if (mode === "delete") {
-		if (itemForManagement === "board") {
-			// Logic to add a new board
-			boardStore.addItem(name.value, boardMember.value);
-			emit("closeForm");
-		} else if (itemForManagement === "column") {
-			// Logic to add a new column
-			console.log(`Adding new column with name: ${name.value}`);
-		} else if (itemForManagement === "task") {
-			// Logic to add a new task
-			console.log(
-				`Adding new task with name: ${name.value}, priority: ${priority.value}, due date: ${dueDate.value}, assignee: ${assignee.value}`
-			);
-		}
+		emit("closeForm");
+	} else if (mode === "edit") {
+		emit("closeForm");
+	} else if (mode === "delete") {
 	}
 
 	// You can use the values of name, member, priority, dueDate, and assignee here
 };
 
 const emit = defineEmits(["closeForm"]);
-// should pass the props from parent component !!!!!
 </script>

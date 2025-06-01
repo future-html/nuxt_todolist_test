@@ -63,7 +63,7 @@ const boardStore = useBoard();
 
 const handleDeleteBoard = () => {
 	// Implement the logic to delete the board
-	boardStore.deleteItem();
+	// boardStore.deleteItem();
 
 	console.log("Delete board logic goes here");
 };

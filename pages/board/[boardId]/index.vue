@@ -9,14 +9,14 @@
 		</button>
 		<GridWrapper>
 			<div
-				v-for="eachColumn in boardStore.getColumns(boardId)"
+				v-for="eachColumn in boardStore.getColumnByBoardId(boardId)"
 				:key="eachColumn.columnId"
 				class="mb-4"
 			>
 				<ColumnInfo
 					:columnName="eachColumn.columnName"
 					:columnId="eachColumn.columnId"
-					:tasks="boardStore.getTasks(eachColumn.columnId)"
+					:tasks="boardStore.getTaskByByColumnId(boardId, eachColumn.columnId)"
 				/>
 			</div>
 		</GridWrapper>
@@ -53,6 +53,8 @@ const handleCloseForm = () => {
 	openFormTask.value = false;
 	mode.value = "";
 };
+
+console.log(boardStore.getColumnByBoardId("board-1"));
 
 // edit board
 // 1. should open and set to edit mode and props should be pass in the form
