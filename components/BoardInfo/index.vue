@@ -6,7 +6,9 @@
 			:openFormTask="openFormTask"
 			@closeForm="handleCloseForm"
 			item-for-management="board"
+			:id="boardIdVal"
 		/>
+
 		<div
 			:key="board.boardId"
 			class="mb-4"
@@ -22,14 +24,14 @@
 
 			<button
 				type="submit"
-				@click="handleOpenFormToEdit"
+				@click="handleOpenFormToEdit(board.boardId)"
 				class="bg-green-600 px-3 py-2 rounded-sm"
 			>
 				Edit
 			</button>
 			<button
 				type="button"
-				@click="handleDeleteBoard()"
+				@click="handleDeleteBoard(board.boardId)"
 				class="border-green-600 border px-2 py-1.5 rounded-sm"
 			>
 				Delete
@@ -49,9 +51,11 @@ defineProps({
 
 const mode = ref<"add" | "edit" | "">("");
 const openFormTask = ref<boolean>(false);
-const handleOpenFormToEdit = () => {
+const boardIdVal = ref<string>("");
+const handleOpenFormToEdit = (boardId: string) => {
 	openFormTask.value = true;
 	mode.value = "edit";
+	boardIdVal.value = boardId;
 };
 
 const handleCloseForm = () => {
@@ -61,7 +65,8 @@ const handleCloseForm = () => {
 
 const boardStore = useBoard();
 
-const handleDeleteBoard = () => {
+const handleDeleteBoard = (boardId: string) => {
+	boardStore.deleteBoard(boardId);
 	// Implement the logic to delete the board
 	// boardStore.deleteItem();
 

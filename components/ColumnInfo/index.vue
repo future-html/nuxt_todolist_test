@@ -13,6 +13,7 @@
 			:openFormTask="openFormTask"
 			@closeForm="handleCloseForm"
 			item-for-management="task"
+			:id="taskId"
 		/>
 		<div
 			v-if="tasks.length > 0"
@@ -26,7 +27,7 @@
 				<div v-if="tag.length">--tag: {{ tag }}</div>
 			</div>
 			<button
-				@click="handleOpenFormToEdit"
+				@click="handleOpenFormToEdit(task.taskId)"
 				class="bg-green-600 px-3 py-2 rounded-sm"
 			>
 				Edit
@@ -40,6 +41,8 @@
 import FormAddTaskOrEditTask from "~/components/FormAddTaskOrEditTask/index.vue";
 import type { Task } from "~/lib/data";
 const mode = ref<"add" | "edit" | "">("");
+const taskId = ref<string>("");
+
 defineProps({
 	columnName: String,
 	columnId: String,
@@ -56,9 +59,10 @@ const handleOpenFormToAdd = () => {
 	mode.value = "add";
 };
 
-const handleOpenFormToEdit = () => {
+const handleOpenFormToEdit = (id: string) => {
 	openFormTask.value = true;
 	mode.value = "edit";
+	taskId.value = id;
 };
 
 const handleCloseForm = () => {

@@ -1,13 +1,14 @@
 import { defineStore } from "pinia";
 import { defaultData, normalizedData } from "~/lib/data";
 import type { Board, Column, NormalizedKanbanData, User } from "~/lib/data";
-
+function saveData(key: string, value: string) {
+	if (process.client) {
+		localStorage.setItem(key, value);
+	}
+}
 export const useAuth = defineStore("auth", {
 	state: () => ({
 		users: defaultData.users as User[],
-		boards: normalizedData.boards,
-		columns: normalizedData.columns,
-		tasks: normalizedData.tasks,
 	}),
 	actions: {
 		loadInitialData() {
@@ -70,7 +71,11 @@ export const useAuth = defineStore("auth", {
 			localStorage.removeItem("currentUser"); // just remove current user
 		},
 	},
-	getters: {},
+	getters: {
+		getAllUser: (state) => () => {
+			return state.users.map((user) => user.userId);
+		},
+	},
 });
 
 export const useBoard = defineStore("board", {
@@ -81,10 +86,64 @@ export const useBoard = defineStore("board", {
 	}),
 
 	actions: {
-		saveData() {},
-		loadInitData() {},
-		addBoard() {},
-		deleteBoard() {},
+		getData() {
+			if (process.client) {
+				const storedBoard = localStorage.getItem("board");
+				const storedColumn = localStorage.getItem("column");
+				const storedTask = localStorage.getItem("task");
+				this.boards = storedBoard ? JSON.parse(storedBoard) : normalizedData.boards;
+				this.columns = storedColumn ? JSON.parse(storedColumn) : normalizedData.columns;
+				this.tasks = storedTask ? JSON.parse(storedTask) : normalizedData.tasks;
+			}
+		},
+
+		// loadInitData() {},
+		addBoard(boardName: string, boardMember: string[]) {
+			// console.log(boardName, boardMember);
+			if (process.client) {
+				const currentUser = JSON.parse(localStorage.getItem("currentUser") ?? "");
+
+				const newAddedBoards = [
+					...this.boards,
+					{
+						boardId: `board-${Math.floor(Math.random() * 2000000000)}`,
+						boardName: boardName,
+						members: boardMember,
+						owner: currentUser,
+						columnIds: [],
+					},
+				];
+				this.boards = newAddedBoards;
+				saveData("board", JSON.stringify(this.boards));
+			}
+		},
+		deleteBoard(boardId: string) {
+			if (process.client) {
+				const originalDeleteBoard = [...this.boards];
+				const originalDeleteColumn = [...this.columns];
+				const originalDeleteTask = [...this.tasks];
+				const boardStore = useBoard();
+				const columnGetByBoardId = boardStore.getColumnByBoardId(boardId); // [{columnId, columnName,....}]
+				if (!columnGetByBoardId) {
+					return;
+				}
+				const taskIds: string[][] = [];
+				columnGetByBoardId?.forEach((column) => {
+					taskIds.push([...column.taskIds]);
+				});
+				const taskIdsFlatted: string[] = taskIds.flat();
+				console.log(taskIdsFlatted); // ['task-?', ....]
+
+				// delete cascase board ==> column ==> task
+				this.boards = originalDeleteBoard.filter((board) => board.boardId !== boardId);
+				this.columns = originalDeleteColumn.filter((column) => !columnGetByBoardId.includes(column));
+				this.tasks = originalDeleteTask.filter((task) => !taskIdsFlatted.includes(task.taskId));
+				saveData("board", JSON.stringify(this.boards));
+				saveData("column", JSON.stringify(this.columns));
+				saveData("task", JSON.stringify(this.tasks));
+			}
+			console.log(boardId, "boardId");
+		},
 		editBoard() {},
 		addColumn() {},
 		deleteColumn() {},
@@ -141,13 +200,26 @@ export const useBoard = defineStore("board", {
 		},
 
 		getEditFormByBoardOrColumnOrTaskId: (state) => (boardId?: string, columnId?: string, taskId?: string) => {
-			const boardStore = useBoard();
-			const filteredTaskByTaskId = state.tasks.find((task) => task.taskId === taskId);
 			return boardId
-				? boardStore.getBoardByUserId()
+				? state.boards.find((board) => board.boardId === boardId)
 				: columnId
-				? boardStore.getColumnByBoardId(columnId)
-				: filteredTaskByTaskId;
+				? state.columns.find((column) => column.columnId === columnId)
+				: state.tasks.find((task) => task.taskId === taskId);
+		},
+		getMemberWhoCanBeAssigneeFromBoardId: (state) => (boardId: string) => {
+			// return member
+			if (process.client) {
+				return [...state.boards.find((board) => board.boardId === boardId)?.members!];
+			}
+		},
+		getInvitePeopleToJoinBoard: (state) => (boardId: string) => {
+			if (process.client) {
+				const currentUser = localStorage.getItem("currentUser");
+				const board = state.boards.find((b) => b.boardId === boardId);
+				const authStore = useAuth();
+				const allUserInfo = authStore.getAllUser();
+				return allUserInfo.filter((userId) => !board?.members?.includes(userId) && userId !== currentUser);
+			}
 		},
 	},
 });

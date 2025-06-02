@@ -27,6 +27,7 @@
 			@closeForm="handleCloseForm"
 			item-for-management="board"
 		/>
+		Note: You can invite member by click edit button on that board.
 
 		<GridWrapper>
 			<div v-for="board in boardStore.getBoardByUserId()">

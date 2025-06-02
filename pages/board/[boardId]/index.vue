@@ -7,6 +7,7 @@
 		>
 			Add Column
 		</button>
+
 		<GridWrapper>
 			<div
 				v-for="eachColumn in boardStore.getColumnByBoardId(boardId)"
@@ -14,10 +15,13 @@
 				class="mb-4"
 			>
 				<ColumnInfo
+					:key="JSON.stringify(boardStore.getTaskByByColumnId(boardId, eachColumn.columnId))"
 					:columnName="eachColumn.columnName"
 					:columnId="eachColumn.columnId"
 					:tasks="boardStore.getTaskByByColumnId(boardId, eachColumn.columnId)"
 				/>
+				<button @click="handleOpenFormToEdit(eachColumn.columnId)">Edit column</button>
+				<button>Delete column</button>
 			</div>
 		</GridWrapper>
 
@@ -27,6 +31,7 @@
 			:openFormTask="openFormTask"
 			@closeForm="handleCloseForm"
 			item-for-management="column"
+			:id="columnId"
 		/>
 	</section>
 </template>
@@ -35,14 +40,15 @@
 definePageMeta({
 	middleware: "auth",
 });
-import { useBoard } from "~/store/useTask";
+import FormAddTaskOrEditTask from "~/components/FormAddTaskOrEditTask/index.vue";
+import { useAuth, useBoard } from "~/store/useTask";
 import ColumnInfo from "~/components/ColumnInfo/index.vue";
 import GridWrapper from "~/components/GridWrapper/index.vue";
 const route = useRoute();
 const boardId = route.params.boardId as string;
 console.log("route.params.boardId", route.params.boardId);
 const boardStore = useBoard();
-
+const columnId = ref<string>("");
 const mode = ref<"add" | "edit" | "">("");
 const openFormTask = ref<boolean>(false);
 const handleOpenFormToAdd = () => {
@@ -54,8 +60,17 @@ const handleCloseForm = () => {
 	mode.value = "";
 };
 
-console.log(boardStore.getColumnByBoardId("board-1"));
+const handleOpenFormToEdit = (id: string) => {
+	console.log("clicked");
+	openFormTask.value = true;
+	mode.value = "edit";
+	columnId.value = id;
+};
 
+const authStroe = useAuth();
+
+console.log(authStroe.getAllUser());
+console.log(boardStore.getMemberWhoCanBeAssigneeFromBoardId(boardId));
 // edit board
 // 1. should open and set to edit mode and props should be pass in the form
 // 2. should find the value to replace

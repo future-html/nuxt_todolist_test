@@ -1,9 +1,9 @@
 <template lang="">
-	<section class="absolute overflow-hidden bg-black inset-0 h-full w-full">
+	<section class="absolute bg-black inset-0 h-full w-full">
 		<div class="relative">
 			<form
 				@submit.prevent="handleSubmit(mode, itemForManagement)"
-				class="w-[24rem] absolute top-0 left-1/2 transform translate-y-1/2 -translate-x-1/2 bg-black p-6 rounded-lg shadow-lg"
+				class="w-[24rem] absolute top-0 left-1/2 transform translate-y-1/4 -translate-x-1/2 bg-black p-6 rounded-lg shadow-lg"
 			>
 				<h2 class="sr-only">Add / Edit Board / Column / Task ==> mode</h2>
 				<!-- // label for input to fill the form and add function prevent submit to the form element <br />// id must not be in
@@ -11,12 +11,14 @@
 		// board ==> id (generated), name, members <br />
 		// column ==> id (genarated), name, // task ==> id(generated), name, priority, dueDate, assignee (use member in
 		that board to select value) -->
-				<h2 class="text-3xl font-light mb-3">{{ mode }} {{ itemForManagement }} form</h2>
+				<h2 class="text-3xl font-light mb-3">
+					{{ mode.charAt(0).toUpperCase() + mode.slice(1) }} {{ itemForManagement }} form
+				</h2>
 				<div class="w-full flex flex-col gap-3">
 					<label
 						class="text-xl"
 						for="boardName"
-						>BoardName</label
+						>{{ itemForManagement }}Name</label
 					>
 					<input
 						type="text"
@@ -28,46 +30,33 @@
 				</div>
 
 				<div
-					v-if="itemForManagement === 'board'"
-					class="mt-2"
+					v-if="itemForManagement === 'board' && mode === 'edit'"
+					class="mt-2 select-none flex flex-col"
 				>
 					<h2 class="text-xl">Invite member (for board only)</h2>
+
 					<div
-						@click="handleChangeMemberIncludeOrnot('user-1')"
-						:class="
-							boardMember.includes('user-1') // pass this argument
-								? 'text-green-600 mt-2 text-lg font-normal border border-green-600 p-2 inline-block'
-								: 'text-black mt-2 text-lg font-normal border border-white p-2 inline-block'
-						"
+						class=""
+						v-if="listUserThatCanInvite.length > 0"
+						v-for="userId in listUserThatCanInvite"
 					>
-						user-1
-					</div>
-					<div
-						@click="handleChangeMemberIncludeOrnot('user-2')"
-						:class="
-							boardMember.includes('user-2')
-								? 'text-green-600 mt-2 text-lg font-normal border border-green-600 p-2 inline-block'
-								: 'text-black mt-2 text-lg font-normal border border-white p-2 inline-block'
-						"
-					>
-						user-2
-					</div>
-					<div
-						@click="handleChangeMemberIncludeOrnot('user-3')"
-						:class="
-							boardMember.includes('user-3')
-								? 'text-green-600 mt-2 text-lg font-normal border border-green-600 p-2 inline-block'
-								: 'text-black mt-2 text-lg font-normal border border-white p-2 inline-block'
-						"
-					>
-						user-3
+						<div
+							@click="handleChangeMemberIncludeOrnot(userId)"
+							:class="
+								boardMember.includes(userId) // pass this argument
+									? 'text-green-600 mt-2 text-lg font-normal border border-green-600 p-2 '
+									: 'text-white mt-2 text-lg font-normal border border-white p-2 '
+							"
+						>
+							{{ userId }}
+						</div>
 					</div>
 				</div>
 				<div
 					class="mt-2"
 					v-if="itemForManagement === 'task'"
 				>
-					<h2 class="text-x">--taskPriority select</h2>
+					<h2 class="text-xl">--taskPriority select</h2>
 
 					<select
 						v-model="priority"
@@ -97,31 +86,21 @@
 					assignee select
 					<select
 						v-model="assignee"
-						class="w-full mt-2 px-4 py-2 bg-black border border-white"
+						class="outline-none border-green-500 border px-2 py-1.5"
 					>
 						<option
-							value=""
-							disabled
-							selected
+							v-for="member in boardStore.getMemberWhoCanBeAssigneeFromBoardId(boardId)"
+							:value="member"
 						>
-							Select Member
+							{{ member }}
 						</option>
-						<!-- Assuming you have a list of members to select from -->
-						<!-- <option
-						v-for="memberOption in members"
-						:key="memberOption"
-						:value="memberOption"
-					>
-						{{ memberOption }}
-					</option> -->
 					</select>
-					<div>tag option display tag tect input (optionmal)</div>
 				</div>
 				<button
 					type="submit"
-					class="bg-green-600 px-3 py-2 rounded-sm"
+					class="bg-green-600 mt-4 px-3 py-2 rounded-sm"
 				>
-					Add / Edit {{ itemForManagement }}
+					{{ mode === "add" ? "Add" : "Edit" }} {{ itemForManagement }}
 				</button>
 				<button
 					type="button"
@@ -139,15 +118,18 @@
 import { useBoard } from "~/store/useTask";
 // const itemForManagement = ref < "board" | "column"| "task">("board");  // use this variable to store in pinia
 const name = ref<string>(""); // use this variable to store in pinia value are work but there is also defineModel
-const member = ref<string>(""); // use this variable to store in pinia
+// const member = ref<string>(""); // use this variable to store in pinia
 const priority = ref<"low" | "medium" | "high" | "">(""); //
-const dueDate = ref<Date>(new Date()); //
+const dueDate = ref<string>(""); //
 const assignee = ref<string>(""); //
 const boardStore = useBoard();
 const boardMember = ref<string[]>([]);
-
+const listUserThatCanInvite = ref<string[]>([]);
 console.log(name.value);
-defineProps({
+
+const router = useRoute();
+const boardId = router.params.boardId;
+const props = defineProps({
 	mode: {
 		type: String,
 		default: "add", // "add" | "edit"
@@ -160,8 +142,41 @@ defineProps({
 		type: Boolean,
 		default: false,
 	},
+	// pass boardId, columnId, taskId,
+	// pass id end....
+	id: {
+		type: String,
+	},
 });
 
+if (props.mode === "edit" && props.itemForManagement === "board") {
+	listUserThatCanInvite.value = [
+		...boardStore.getInvitePeopleToJoinBoard(props.id as string),
+		...boardStore.getMemberWhoCanBeAssigneeFromBoardId(props.id as string),
+	];
+}
+
+console.log(props.id, "props id to edit form");
+console.log(props.itemForManagement === "column");
+const editInfo =
+	props.itemForManagement === "board"
+		? boardStore.getEditFormByBoardOrColumnOrTaskId(props.id)
+		: props.itemForManagement === "column"
+		? boardStore.getEditFormByBoardOrColumnOrTaskId(undefined, props.id)
+		: boardStore.getEditFormByBoardOrColumnOrTaskId(undefined, undefined, props.id);
+if (props.mode === "edit" && editInfo) {
+	if (props.itemForManagement === "board" && "boardName" in editInfo && "members" in editInfo) {
+		name.value = editInfo.boardName;
+		boardMember.value = editInfo.members;
+	} else if (props.itemForManagement === "column" && "columnName" in editInfo) {
+		name.value = editInfo.columnName;
+	} else if (props.itemForManagement === "task" && "taskName" in editInfo) {
+		name.value = editInfo.taskName;
+		if ("priority" in editInfo) priority.value = editInfo.priority;
+		if ("dueDate" in editInfo) dueDate.value = editInfo.dueDate;
+		if ("assignee" in editInfo) assignee.value = editInfo.assignee;
+	}
+}
 const handleChangeMemberIncludeOrnot = (userId: string) => {
 	if (boardMember.value.includes(userId)) {
 		// const findIndex = boardMember.value.findIndex((elementId) => elementId === userId); // return ['user-1', 'user-2' ,......]
@@ -185,10 +200,15 @@ const handleSubmit = (mode: string, itemForManagement: string) => {
 	// handle the form submission logic here
 
 	if (mode === "add") {
-		emit("closeForm");
+		if (itemForManagement === "board") {
+			boardStore.addBoard(name.value, boardMember.value);
+
+			emit("closeForm");
+		}
 	} else if (mode === "edit") {
 		emit("closeForm");
 	} else if (mode === "delete") {
+		emit("closeForm");
 	}
 
 	// You can use the values of name, member, priority, dueDate, and assignee here
