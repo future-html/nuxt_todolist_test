@@ -1,7 +1,7 @@
 <template lang="">
 	<section>
 		<FormAddTaskOrEditTask
-			v-if="openFormTask"
+			v-if="openFormTask && owner === currentUser"
 			:mode="mode"
 			:openFormTask="openFormTask"
 			@closeForm="handleCloseForm"
@@ -24,12 +24,14 @@
 
 			<button
 				type="submit"
+				v-if="owner === currentUser"
 				@click="handleOpenFormToEdit(board.boardId)"
 				class="bg-green-600 px-3 py-2 rounded-sm"
 			>
 				Edit
 			</button>
 			<button
+				v-if="owner === currentUser"
 				type="button"
 				@click="handleDeleteBoard(board.boardId)"
 				class="border-green-600 border px-2 py-1.5 rounded-sm"
@@ -48,6 +50,10 @@ defineProps({
 	board: Object, // type Board
 	owner: String, // type string
 });
+
+const currentUser = JSON.parse(localStorage.getItem("currentUser") ?? "");
+
+console.log(currentUser);
 
 const mode = ref<"add" | "edit" | "">("");
 const openFormTask = ref<boolean>(false);

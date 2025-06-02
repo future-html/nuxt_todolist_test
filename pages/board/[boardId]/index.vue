@@ -15,13 +15,24 @@
 				class="mb-4"
 			>
 				<ColumnInfo
-					:key="JSON.stringify(boardStore.getTaskByByColumnId(boardId, eachColumn.columnId))"
+					:key="JSON.stringify(boardStore.getTaskByByColumnId(eachColumn.columnId))"
 					:columnName="eachColumn.columnName"
 					:columnId="eachColumn.columnId"
-					:tasks="boardStore.getTaskByByColumnId(boardId, eachColumn.columnId)"
+					:tasks="boardStore.getTaskByByColumnId( eachColumn.columnId)!"
 				/>
-				<button @click="handleOpenFormToEdit(eachColumn.columnId)">Edit column</button>
-				<button>Delete column</button>
+
+				<button
+					class="px-3 py-2 bg-green-600 rounded-md"
+					@click="handleOpenFormToEdit(eachColumn.columnId)"
+				>
+					Edit column
+				</button>
+				<button
+					@click="handleDeleteColumn(eachColumn.columnId)"
+					class="px-3 py-2 border border-green-600 rounded-md"
+				>
+					Delete column
+				</button>
 			</div>
 		</GridWrapper>
 
@@ -67,10 +78,14 @@ const handleOpenFormToEdit = (id: string) => {
 	columnId.value = id;
 };
 
+const handleDeleteColumn = (columnId: string) => {
+	boardStore.deleteColumn(columnId);
+};
+
 const authStroe = useAuth();
 
 console.log(authStroe.getAllUser());
-console.log(boardStore.getMemberWhoCanBeAssigneeFromBoardId(boardId));
+
 // edit board
 // 1. should open and set to edit mode and props should be pass in the form
 // 2. should find the value to replace

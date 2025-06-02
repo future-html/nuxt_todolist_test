@@ -56,7 +56,7 @@
 					class="mt-2"
 					v-if="itemForManagement === 'task'"
 				>
-					<h2 class="text-xl">--taskPriority select</h2>
+					<h2 class="text-xl">--taskPriority</h2>
 
 					<select
 						v-model="priority"
@@ -74,19 +74,25 @@
 						<option value="high">High</option>
 					</select>
 				</div>
-				<div v-if="itemForManagement === 'task'">
-					Due date
+				<div
+					class="mt-4"
+					v-if="itemForManagement === 'task'"
+				>
+					<h2 class="text-xl pb-2">Due date</h2>
 					<input
 						type="date"
 						v-model="dueDate"
 						class="w-full px-4 py-2 bg-black border border-white"
 					/>
 				</div>
-				<div v-if="itemForManagement === 'task'">
-					assignee select
+				<div
+					class="mt-4"
+					v-if="itemForManagement === 'task'"
+				>
+					<h2 class="text-xl pb-2">Assignee</h2>
 					<select
 						v-model="assignee"
-						class="outline-none border-green-500 border px-2 py-1.5"
+						class="outline-none w-full border-green-500 border px-2 py-1.5"
 					>
 						<option
 							v-for="member in boardStore.getMemberWhoCanBeAssigneeFromBoardId(boardId)"
@@ -96,6 +102,14 @@
 						</option>
 					</select>
 				</div>
+				<div
+					class="mt-4"
+					v-if="itemForManagement === 'task'"
+				>
+					<h2>Change task position</h2>
+					---list column ---list position
+				</div>
+
 				<button
 					type="submit"
 					class="bg-green-600 mt-4 px-3 py-2 rounded-sm"
@@ -119,11 +133,12 @@ import { useBoard } from "~/store/useTask";
 // const itemForManagement = ref < "board" | "column"| "task">("board");  // use this variable to store in pinia
 const name = ref<string>(""); // use this variable to store in pinia value are work but there is also defineModel
 // const member = ref<string>(""); // use this variable to store in pinia
-const priority = ref<"low" | "medium" | "high" | "">(""); //
+const priority = ref<"low" | "medium" | "high">("low"); //
 const dueDate = ref<string>(""); //
 const assignee = ref<string>(""); //
 const boardStore = useBoard();
 const boardMember = ref<string[]>([]);
+// const tags = ref<string[]>([]);
 const listUserThatCanInvite = ref<string[]>([]);
 console.log(name.value);
 
@@ -147,12 +162,16 @@ const props = defineProps({
 	id: {
 		type: String,
 	},
+	column: {
+		type: String,
+	},
 });
 
 if (props.mode === "edit" && props.itemForManagement === "board") {
+	console.log(props.id, "id for board");
 	listUserThatCanInvite.value = [
-		...boardStore.getInvitePeopleToJoinBoard(props.id as string),
-		...boardStore.getMemberWhoCanBeAssigneeFromBoardId(props.id as string),
+		...(boardStore.getInvitePeopleToJoinBoard(props.id as string) || []),
+		...(boardStore.getMemberWhoCanBeAssigneeFromBoardId(props.id as string) || []),
 	];
 }
 
@@ -174,6 +193,7 @@ if (props.mode === "edit" && editInfo) {
 		name.value = editInfo.taskName;
 		if ("priority" in editInfo) priority.value = editInfo.priority;
 		if ("dueDate" in editInfo) dueDate.value = editInfo.dueDate;
+		// if ("tags" in editInfo) tags.value = editInfo.tags;
 		if ("assignee" in editInfo) assignee.value = editInfo.assignee;
 	}
 }
@@ -202,15 +222,20 @@ const handleSubmit = (mode: string, itemForManagement: string) => {
 	if (mode === "add") {
 		if (itemForManagement === "board") {
 			boardStore.addBoard(name.value, boardMember.value);
-
-			emit("closeForm");
+		} else if (itemForManagement === "column") {
+			boardStore.addColumn(boardId as string, name.value);
+		} else if (itemForManagement === "task") {
+			boardStore.addTask(name.value, props.column as string, priority.value, dueDate.value, assignee.value);
 		}
-	} else if (mode === "edit") {
 		emit("closeForm");
-	} else if (mode === "delete") {
+	} else if (mode === "edit") {
+		if (itemForManagement === "board") {
+			boardStore.editBoard(props.id as string, name.value, boardMember.value);
+		} else if (itemForManagement === "column") {
+			boardStore.updateColumn(props.id as string, name.value);
+		}
 		emit("closeForm");
 	}
-
 	// You can use the values of name, member, priority, dueDate, and assignee here
 };
 

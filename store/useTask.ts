@@ -1,11 +1,12 @@
 import { defineStore } from "pinia";
 import { defaultData, normalizedData } from "~/lib/data";
-import type { Board, Column, NormalizedKanbanData, User } from "~/lib/data";
+import type { User } from "~/lib/data";
 function saveData(key: string, value: string) {
 	if (process.client) {
 		localStorage.setItem(key, value);
 	}
 }
+
 export const useAuth = defineStore("auth", {
 	state: () => ({
 		users: defaultData.users as User[],
@@ -86,23 +87,11 @@ export const useBoard = defineStore("board", {
 	}),
 
 	actions: {
-		getData() {
-			if (process.client) {
-				const storedBoard = localStorage.getItem("board");
-				const storedColumn = localStorage.getItem("column");
-				const storedTask = localStorage.getItem("task");
-				this.boards = storedBoard ? JSON.parse(storedBoard) : normalizedData.boards;
-				this.columns = storedColumn ? JSON.parse(storedColumn) : normalizedData.columns;
-				this.tasks = storedTask ? JSON.parse(storedTask) : normalizedData.tasks;
-			}
-		},
-
-		// loadInitData() {},
 		addBoard(boardName: string, boardMember: string[]) {
 			// console.log(boardName, boardMember);
 			if (process.client) {
-				const currentUser = JSON.parse(localStorage.getItem("currentUser") ?? "");
-
+				const storeCurrentUser = localStorage.getItem("currentUser");
+				const currentUser = storeCurrentUser ? JSON.parse(storeCurrentUser) : "";
 				const newAddedBoards = [
 					...this.boards,
 					{
@@ -144,58 +133,161 @@ export const useBoard = defineStore("board", {
 			}
 			console.log(boardId, "boardId");
 		},
-		editBoard() {},
-		addColumn() {},
-		deleteColumn() {},
-		updateColumn() {},
-		addTask() {},
-		deleteTask() {},
+		editBoard(boardId: string, boardName: string, members: string[]) {
+			console.log(boardId, boardName, members);
+			const findIndexBoardWhereToUpdate = this.boards.findIndex((board) => board.boardId === boardId);
+			const originalBoard = [...this.boards];
+			originalBoard.splice(findIndexBoardWhereToUpdate, 1, {
+				...originalBoard[findIndexBoardWhereToUpdate],
+				boardId,
+				boardName,
+				members,
+			});
+			this.boards = originalBoard;
+			saveData("board", JSON.stringify(this.boards));
+		},
+		addColumn(boardId: string, columnName: string) {
+			console.log(this.columns.length);
+
+			const columnId = `column-${Math.floor(Math.random() * 200000000000)}`;
+			const originalBoard = [...this.boards];
+			const findIndexBoardFromOriginalBoard = originalBoard.findIndex((board) => board.boardId === boardId);
+			console.log(this.boards[findIndexBoardFromOriginalBoard].columnIds);
+			const copyFindBoardAndUpdateColumnIds = {
+				...originalBoard[findIndexBoardFromOriginalBoard],
+				columnIds: [...originalBoard[findIndexBoardFromOriginalBoard].columnIds, columnId],
+			};
+
+			originalBoard.splice(findIndexBoardFromOriginalBoard, 1, copyFindBoardAndUpdateColumnIds);
+			console.log(originalBoard[findIndexBoardFromOriginalBoard]);
+			this.boards = originalBoard;
+			console.log(this.boards[findIndexBoardFromOriginalBoard].columnIds);
+
+			const toPushColumn = [...this.columns, { columnId, columnName, taskIds: [] }];
+
+			this.columns = toPushColumn;
+			console.log(this.columns);
+			saveData("board", JSON.stringify(this.boards));
+			saveData("column", JSON.stringify(this.columns));
+		},
+		deleteColumn(columnId: string) {
+			const originalColumn = [...this.columns];
+			const originalTask = [...this.tasks];
+			const findIndexColumnForTaskIds = originalColumn.findIndex((column) => column.columnId === columnId);
+
+			const filteredTaskFromOriginalTask = originalTask.filter((task) =>
+				originalColumn[findIndexColumnForTaskIds].taskIds?.includes(task.taskId)
+			);
+			originalColumn.splice(findIndexColumnForTaskIds, 1);
+			this.columns = originalColumn;
+			this.tasks = filteredTaskFromOriginalTask;
+			saveData("column", JSON.stringify(this.columns));
+			saveData("task", JSON.stringify(this.tasks));
+		},
+		updateColumn(columnId: string, columnName: string) {
+			const originalColumn = [...this.columns];
+			const findIndexWhereToUpdateColumn = originalColumn.findIndex((column) => column.columnId === columnId);
+			originalColumn.splice(findIndexWhereToUpdateColumn, 1, {
+				...originalColumn[findIndexWhereToUpdateColumn],
+				columnName,
+			});
+			this.columns = originalColumn;
+			saveData("column", JSON.stringify(this.columns));
+		},
+		addTask(
+			taskName: string,
+			columnId: string,
+			priority: "low" | "medium" | "high",
+			dueDate: string,
+			assignee: string
+		) {
+			const originalColumn = [...this.columns];
+			const findIndexColumn = originalColumn.findIndex((column) => column.columnId === columnId);
+			const taskId = `task-${Math.floor(Math.random() * 200000000000000)}`;
+			const originalTask = [...this.tasks];
+			originalColumn.splice(findIndexColumn, 1, {
+				...originalColumn[findIndexColumn],
+				taskIds: [...originalColumn[findIndexColumn].taskIds, taskId],
+			});
+			originalTask.push({ taskId, taskName, priority, dueDate, assignee, tags: [] });
+			this.columns = originalColumn;
+			this.tasks = originalTask;
+			saveData("column", JSON.stringify(this.columns));
+			saveData("task", JSON.stringify(this.tasks));
+		},
+		deleteTask(columnId: string, taskId: string) {},
 		editTask() {},
-		inviteUser() {}, // if remove user then set state by spread operator
+		// inviteUser() {}, // if remove user then set state by spread operator
 		// removeUser() {},
-		changePositionTask(columnId: string, position: number) {},
+		changePositionTask(columnId: string, columnIdNewToReorder: string, taskId: string, position: number) {},
 	},
 	getters: {
 		getBoardByUserId: (state) => () => {
 			if (process.client) {
-				const storedCurrentUserId = JSON.parse(localStorage.getItem("currentUser") ?? "");
+				const currentUser = localStorage.getItem("currentUser");
+				const storedCurrentUserId = currentUser ? JSON.parse(currentUser) : "";
 				const storedBoard = localStorage.getItem("board");
 				state.boards = storedBoard ? JSON.parse(storedBoard) : normalizedData.boards;
 				const filteredStordBoardByCurrentUser = state.boards.filter(
-					(board) => board.owner === storedCurrentUserId || board.members.includes(storedCurrentUserId)
+					(board) => board.owner === storedCurrentUserId || board.members?.includes(storedCurrentUserId)
 				);
 				return filteredStordBoardByCurrentUser;
 			}
 		},
 		getColumnByBoardId: (state) => (boardId: string) => {
-			// maybe use computed in vue js cause this useBoard hook rendered every time
-			const boardStore = useBoard(); // use custom hooks
-			const filteredStordBoardByCurrentUser = boardStore.getBoardByUserId();
-			const getColumnIdsByBoardId = filteredStordBoardByCurrentUser
-				?.filter((board) => board.boardId === boardId)
-				.map((board) => board.columnIds);
-			if (!getColumnIdsByBoardId) {
-				return;
+			if (process.client) {
+				// maybe use computed in vue js cause this useBoard hook rendered every time
+				const boardStore = localStorage.getItem("board");
+				const userId = localStorage.getItem("currentUser");
+				const currentUser = userId ? JSON.parse(userId) : "";
+				state.boards = boardStore ? JSON.parse(boardStore) : normalizedData.boards;
+				const columnIds = state.boards.find((board) => board.boardId === boardId)?.columnIds!;
+
+				const columnStore = localStorage.getItem("column");
+				state.columns = columnStore ? JSON.parse(columnStore) : normalizedData.columns;
+				console.log(state.columns, "column");
+				return state.columns.filter((column) => columnIds.length > 0 && columnIds?.includes(column.columnId));
 			}
-			const flatColumnIds = getColumnIdsByBoardId?.flat() ?? [];
-			const filteredColumnsInfoByColumnId = state.columns.filter((column) =>
-				flatColumnIds.includes(column.columnId)
-			);
-			return filteredColumnsInfoByColumnId;
+
+			// const getColumnIdsByBoardId = filteredStordBoardByCurrentUser?.filter((board) => board.boardId === boardId)
+			// 	.map((board) => board.columnIds);
+			// if (!getColumnIdsByBoardId) {
+			// 	return;
+			// }
+			// const flatColumnIds = getColumnIdsByBoardId?.flat() ?? [];
+			// const filteredColumnsInfoByColumnId = state.columns.filter((column) =>
+			// 	flatColumnIds.includes(column.columnId)
+			// );
+			// return filteredColumnsInfoByColumnId;
 		},
 
-		getTaskByByColumnId: (state) => (boardId: string, columnId: string) => {
-			const boardStore = useBoard();
-			const filteredColumnsInfoByColumnId = boardStore.getColumnByBoardId(boardId);
-			const selectedColumnByColumnId = filteredColumnsInfoByColumnId?.filter(
-				(column) => column.columnId === columnId
-			);
-			const getTaskIdsByColumnId = selectedColumnByColumnId![0].taskIds;
-			if (!getTaskIdsByColumnId) {
-				return;
-			}
-			return state.tasks.filter((task) => getTaskIdsByColumnId.includes(task.taskId));
+		getTaskByByColumnId: (state) => (columnId: string) => {
+			if (process.client) {
+				const boardStore = localStorage.getItem("board");
+				const taskStore = localStorage.getItem("task");
+				const columnStore = localStorage.getItem("column");
+				state.boards = boardStore ? JSON.parse(boardStore) : normalizedData.boards;
+				state.columns = columnStore ? JSON.parse(columnStore) : normalizedData.columns;
+				state.tasks = taskStore ? JSON.parse(taskStore) : normalizedData.tasks;
+				console.log(state.tasks, "tasks");
+				const filteredColumnIdForTaskId = state.columns.find((column) => column.columnId === columnId)?.taskIds;
 
+				console.log(filteredColumnIdForTaskId, "columnTaskIds");
+
+				return state.tasks.filter((task) => {
+					return filteredColumnIdForTaskId?.length! > 0 && filteredColumnIdForTaskId?.includes(task.taskId);
+				});
+			}
+			// const boardStore = useBoard();
+			// const filteredColumnsInfoByColumnId = boardStore.getColumnByBoardId(boardId);
+			// const selectedColumnByColumnId = filteredColumnsInfoByColumnId?.filter(
+			// 	(column) => column.columnId === columnId
+			// );
+			// const getTaskIdsByColumnId = selectedColumnByColumnId![0].taskIds;
+			// if (!getTaskIdsByColumnId) {
+			// 	return;
+			// }
+			// return state.tasks.filter((task) => getTaskIdsByColumnId.includes(task.taskId));
 			// return state.tasks.find((task) => task.)
 		},
 
@@ -214,11 +306,10 @@ export const useBoard = defineStore("board", {
 		},
 		getInvitePeopleToJoinBoard: (state) => (boardId: string) => {
 			if (process.client) {
-				const currentUser = localStorage.getItem("currentUser");
 				const board = state.boards.find((b) => b.boardId === boardId);
 				const authStore = useAuth();
 				const allUserInfo = authStore.getAllUser();
-				return allUserInfo.filter((userId) => !board?.members?.includes(userId) && userId !== currentUser);
+				return allUserInfo.filter((userId) => !board?.members?.includes(userId) && userId !== board?.owner);
 			}
 		},
 	},
