@@ -371,6 +371,8 @@ export const useBoard = defineStore("board", {
 //
 /*
 
+comment to deploy 
+
 
 try to tell the type don't think in mind try to grasp the information u understand as least as possible.
 crud operation then optimization
