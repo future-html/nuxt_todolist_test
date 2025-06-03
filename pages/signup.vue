@@ -10,7 +10,7 @@
 				<label
 					for="name"
 					class="mb-2"
-					>Email</label
+					>Name</label
 				>
 				<input
 					type="name"
