@@ -1,9 +1,11 @@
 <template lang="">
-	<section class="absolute overflow-scroll bg-black inset-0 h-full w-full">
+	<section
+		class="absolute overflow-scroll bg-black top-0 left-1/2 transform -translate-x-1/2 h-screen w-screen inset-0"
+	>
 		<div class="relative">
 			<form
 				@submit.prevent="handleSubmit(mode, itemForManagement)"
-				class="w-[24rem] h-1/2 absolute top-0 left-1/2 transform translate-y-1/4 -translate-x-1/2 bg-black p-6 rounded-lg shadow-lg"
+				class="w-[24rem] h-[100vh] overflow-auto absolute bg-black rounded-lg shadow-lg"
 			>
 				<h2 class="sr-only">Add / Edit Board / Column / Task ==> mode</h2>
 				<!-- // label for input to fill the form and add function prevent submit to the form element <br />// id must not be in
