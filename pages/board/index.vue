@@ -46,6 +46,10 @@
 definePageMeta({
 	middleware: "auth",
 });
+
+onMounted(() => {
+	boardStore.loadFromLocalStorage();
+});
 import GridWrapper from "~/components/GridWrapper/index.vue";
 import { useAuth, useBoard } from "~/store/useTask";
 import BoardInfo from "~/components/BoardInfo/index.vue";

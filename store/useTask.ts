@@ -85,6 +85,16 @@ export const useBoard = defineStore("board", {
 	}),
 
 	actions: {
+		loadFromLocalStorage() {
+			if (process.client) {
+				const storedBoard = localStorage.getItem("board");
+				const storedColumn = localStorage.getItem("column");
+				const storedTask = localStorage.getItem("task");
+				this.boards = storedBoard ? JSON.parse(storedBoard) : normalizedData.boards;
+				this.columns = storedColumn ? JSON.parse(storedColumn) : normalizedData.columns;
+				this.tasks = storedTask ? JSON.parse(storedTask) : normalizedData.tasks;
+			}
+		},
 		addBoard(boardName: string, boardMember: string[]) {
 			// // console.log(boardName, boardMember);
 			if (process.client) {
@@ -169,16 +179,23 @@ export const useBoard = defineStore("board", {
 			saveData("column", JSON.stringify(this.columns));
 		},
 		deleteColumn(columnId: string) {
-			const originalColumn = [...this.columns];
-			const originalTask = [...this.tasks];
-			const findIndexColumnForTaskIds = originalColumn.findIndex((column) => column.columnId === columnId);
+			// 1. Find the column index
+			const columnIndex = this.columns.findIndex((c) => c.columnId === columnId);
+			if (columnIndex === -1) return; // Column not found
 
-			const filteredTaskFromOriginalTask = originalTask.filter((task) =>
-				originalColumn[findIndexColumnForTaskIds].taskIds?.includes(task.taskId)
-			);
-			originalColumn.splice(findIndexColumnForTaskIds, 1);
-			this.columns = originalColumn;
-			this.tasks = filteredTaskFromOriginalTask;
+			// 2. Get task IDs from the column before deletion
+			const taskIdsToDelete = this.columns[columnIndex].taskIds || [];
+
+			// 3. Update state immutably
+			this.columns = this.columns.filter((c) => c.columnId !== columnId);
+			this.tasks = this.tasks.filter((t) => !taskIdsToDelete.includes(t.taskId));
+
+			// 4. Update all boards that reference this column
+			this.boards = this.boards.map((board) => ({
+				...board,
+				columnIds: board.columnIds?.filter((id) => id !== columnId) || [],
+			}));
+			saveData("board", JSON.stringify(this.boards));
 			saveData("column", JSON.stringify(this.columns));
 			saveData("task", JSON.stringify(this.tasks));
 		},
@@ -290,56 +307,33 @@ export const useBoard = defineStore("board", {
 		},
 		// inviteUser() {}, // if remove user then set state by spread operator
 		// removeUser() {},
-		changePositionTask(columnId: string, columnIdNewToReorder: string, taskId: string, positionToChange: number) {},
+		// changePositionTask(columnId: string, columnIdNewToReorder: string, taskId: string, positionToChange: number) {},
 	},
 	getters: {
 		getBoardByUserId: (state) => () => {
 			if (process.client) {
 				const currentUser = localStorage.getItem("currentUser");
 				const storedCurrentUserId = currentUser ? JSON.parse(currentUser) : "";
-				const storedBoard = localStorage.getItem("board");
-				state.boards = storedBoard ? JSON.parse(storedBoard) : normalizedData.boards;
 				const filteredStordBoardByCurrentUser = state.boards.filter(
 					(board) => board.owner === storedCurrentUserId || board.members?.includes(storedCurrentUserId)
 				);
 				return filteredStordBoardByCurrentUser;
 			}
 		},
+
 		getColumnByBoardId: (state) => (boardId: string) => {
 			if (process.client) {
 				// maybe use computed in vue js cause this useBoard hook rendered every time
-				const boardStore = localStorage.getItem("board");
-				const userId = localStorage.getItem("currentUser");
-				const currentUser = userId ? JSON.parse(userId) : "";
-				state.boards = boardStore ? JSON.parse(boardStore) : normalizedData.boards;
+
 				const columnIds = state.boards.find((board) => board.boardId === boardId)?.columnIds!;
 
-				const columnStore = localStorage.getItem("column");
-				state.columns = columnStore ? JSON.parse(columnStore) : normalizedData.columns;
 				// console.log(state.columns, "column");
 				return state.columns.filter((column) => columnIds.length > 0 && columnIds?.includes(column.columnId));
 			}
-
-			// const getColumnIdsByBoardId = filteredStordBoardByCurrentUser?.filter((board) => board.boardId === boardId)
-			// 	.map((board) => board.columnIds);
-			// if (!getColumnIdsByBoardId) {
-			// 	return;
-			// }
-			// const flatColumnIds = getColumnIdsByBoardId?.flat() ?? [];
-			// const filteredColumnsInfoByColumnId = state.columns.filter((column) =>
-			// 	flatColumnIds.includes(column.columnId)
-			// );
-			// return filteredColumnsInfoByColumnId;
 		},
 
 		getTaskByByColumnId: (state) => (columnId: string) => {
 			if (process.client) {
-				const boardStore = localStorage.getItem("board");
-				const taskStore = localStorage.getItem("task");
-				const columnStore = localStorage.getItem("column");
-				state.boards = boardStore ? JSON.parse(boardStore) : normalizedData.boards;
-				state.columns = columnStore ? JSON.parse(columnStore) : normalizedData.columns;
-				state.tasks = taskStore ? JSON.parse(taskStore) : normalizedData.tasks;
 				// console.log(state.tasks, "tasks");
 				const filteredColumnIdForTaskId = state.columns.find((column) => column.columnId === columnId)?.taskIds;
 
@@ -349,17 +343,6 @@ export const useBoard = defineStore("board", {
 					return filteredColumnIdForTaskId?.length! > 0 && filteredColumnIdForTaskId?.includes(task.taskId);
 				});
 			}
-			// const boardStore = useBoard();
-			// const filteredColumnsInfoByColumnId = boardStore.getColumnByBoardId(boardId);
-			// const selectedColumnByColumnId = filteredColumnsInfoByColumnId?.filter(
-			// 	(column) => column.columnId === columnId
-			// );
-			// const getTaskIdsByColumnId = selectedColumnByColumnId![0].taskIds;
-			// if (!getTaskIdsByColumnId) {
-			// 	return;
-			// }
-			// return state.tasks.filter((task) => getTaskIdsByColumnId.includes(task.taskId));
-			// return state.tasks.find((task) => task.)
 		},
 
 		getEditFormByBoardOrColumnOrTaskId: (state) => (boardId?: string, columnId?: string, taskId?: string) => {

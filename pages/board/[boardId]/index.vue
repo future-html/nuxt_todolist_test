@@ -51,6 +51,7 @@
 definePageMeta({
 	middleware: "auth",
 });
+
 import FormAddTaskOrEditTask from "~/components/FormAddTaskOrEditTask/index.vue";
 import { useAuth, useBoard } from "~/store/useTask";
 import ColumnInfo from "~/components/ColumnInfo/index.vue";
@@ -59,6 +60,9 @@ const route = useRoute();
 const boardId = route.params.boardId as string;
 // console.log("route.params.boardId", route.params.boardId);
 const boardStore = useBoard();
+onMounted(() => {
+	boardStore.loadFromLocalStorage();
+});
 const columnId = ref<string>("");
 const mode = ref<"add" | "edit" | "">("");
 const openFormTask = ref<boolean>(false);
