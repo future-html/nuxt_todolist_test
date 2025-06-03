@@ -59,7 +59,7 @@ const boardStore = useBoard();
 
 const mode = ref<"add" | "edit" | "">("");
 
-console.log(mode.value, "mode value");
+// console.log(mode.value, "mode value");
 const openFormTask = ref<boolean>(false);
 
 const handleOpenFormToAdd = () => {
@@ -84,11 +84,11 @@ const handleLogout = () => {
 	navigateTo("/login");
 };
 
-console.log(boardStore.getBoardByUserId());
-// console.log(boardStore.getColumns(), "getcolumns");
+// console.log(boardStore.getBoardByUserId());
+// // console.log(boardStore.getColumns(), "getcolumns");
 
-// console.log(boardStore.getTasks(), "getTasks");
-// console.log(boardStore.getBoardCurrentUser());
+// // console.log(boardStore.getTasks(), "getTasks");
+// // console.log(boardStore.getBoardCurrentUser());
 // if can duplicate filter can be great option rather than splice
 </script>
 

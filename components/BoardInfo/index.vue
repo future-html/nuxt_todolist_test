@@ -53,7 +53,7 @@ defineProps({
 
 const currentUser = JSON.parse(localStorage.getItem("currentUser") ?? "");
 
-console.log(currentUser);
+// console.log(currentUser);
 
 const mode = ref<"add" | "edit" | "">("");
 const openFormTask = ref<boolean>(false);
@@ -76,6 +76,6 @@ const handleDeleteBoard = (boardId: string) => {
 	// Implement the logic to delete the board
 	// boardStore.deleteItem();
 
-	console.log("Delete board logic goes here");
+	// console.log("Delete board logic goes here");
 };
 </script>

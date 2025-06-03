@@ -21,7 +21,6 @@ export const useAuth = defineStore("auth", {
 			}
 		}, // todo initial load from localStorage
 		register(name: string, email: string, password: string) {
-			this.loadInitialData();
 			if (process.client) {
 				if (this.users.find((user: User) => user.email === email)) {
 					return "User already exist";
@@ -33,16 +32,15 @@ export const useAuth = defineStore("auth", {
 				const newUser = { userId: "user-" + (this.users.length + 1), name, email, password };
 				const newListUser = this.users.push(newUser);
 
-				console.log(newListUser, "new user");
+				// console.log(newListUser, "new user");
 				localStorage.setItem("users", JSON.stringify(this.users));
-				console.log("user info successfully stored");
+				// console.log("user info successfully stored");
 				return; // register if there is no problem so route to
 			}
 
 			// this.users.push({ userId: "user-" + this.users.length + 1, name, email, password });
 		},
 		login(email: string, password: string) {
-			this.loadInitialData();
 			if (!process.client) {
 				return "Client side only";
 			}
@@ -88,7 +86,7 @@ export const useBoard = defineStore("board", {
 
 	actions: {
 		addBoard(boardName: string, boardMember: string[]) {
-			// console.log(boardName, boardMember);
+			// // console.log(boardName, boardMember);
 			if (process.client) {
 				const storeCurrentUser = localStorage.getItem("currentUser");
 				const currentUser = storeCurrentUser ? JSON.parse(storeCurrentUser) : "";
@@ -121,7 +119,7 @@ export const useBoard = defineStore("board", {
 					taskIds.push([...column.taskIds]);
 				});
 				const taskIdsFlatted: string[] = taskIds.flat();
-				console.log(taskIdsFlatted); // ['task-?', ....]
+				// console.log(taskIdsFlatted); // ['task-?', ....]
 
 				// delete cascase board ==> column ==> task
 				this.boards = originalDeleteBoard.filter((board) => board.boardId !== boardId);
@@ -131,10 +129,10 @@ export const useBoard = defineStore("board", {
 				saveData("column", JSON.stringify(this.columns));
 				saveData("task", JSON.stringify(this.tasks));
 			}
-			console.log(boardId, "boardId");
+			// console.log(boardId, "boardId");
 		},
 		editBoard(boardId: string, boardName: string, members: string[]) {
-			console.log(boardId, boardName, members);
+			// console.log(boardId, boardName, members);
 			const findIndexBoardWhereToUpdate = this.boards.findIndex((board) => board.boardId === boardId);
 			const originalBoard = [...this.boards];
 			originalBoard.splice(findIndexBoardWhereToUpdate, 1, {
@@ -147,26 +145,26 @@ export const useBoard = defineStore("board", {
 			saveData("board", JSON.stringify(this.boards));
 		},
 		addColumn(boardId: string, columnName: string) {
-			console.log(this.columns.length);
+			// console.log(this.columns.length);
 
 			const columnId = `column-${Math.floor(Math.random() * 200000000000)}`;
 			const originalBoard = [...this.boards];
 			const findIndexBoardFromOriginalBoard = originalBoard.findIndex((board) => board.boardId === boardId);
-			console.log(this.boards[findIndexBoardFromOriginalBoard].columnIds);
+			// console.log(this.boards[findIndexBoardFromOriginalBoard].columnIds);
 			const copyFindBoardAndUpdateColumnIds = {
 				...originalBoard[findIndexBoardFromOriginalBoard],
 				columnIds: [...originalBoard[findIndexBoardFromOriginalBoard].columnIds, columnId],
 			};
 
 			originalBoard.splice(findIndexBoardFromOriginalBoard, 1, copyFindBoardAndUpdateColumnIds);
-			console.log(originalBoard[findIndexBoardFromOriginalBoard]);
+			// console.log(originalBoard[findIndexBoardFromOriginalBoard]);
 			this.boards = originalBoard;
-			console.log(this.boards[findIndexBoardFromOriginalBoard].columnIds);
+			// console.log(this.boards[findIndexBoardFromOriginalBoard].columnIds);
 
 			const toPushColumn = [...this.columns, { columnId, columnName, taskIds: [] }];
 
 			this.columns = toPushColumn;
-			console.log(this.columns);
+			// console.log(this.columns);
 			saveData("board", JSON.stringify(this.boards));
 			saveData("column", JSON.stringify(this.columns));
 		},
@@ -215,11 +213,84 @@ export const useBoard = defineStore("board", {
 			saveData("column", JSON.stringify(this.columns));
 			saveData("task", JSON.stringify(this.tasks));
 		},
-		deleteTask(columnId: string, taskId: string) {},
-		editTask() {},
+		deleteTask(columnId: string, taskId: string) {
+			// Create deep copies to avoid direct state mutation
+			const updatedColumns = [...this.columns];
+			const updatedTasks = [...this.tasks];
+
+			// Find the column index
+			const columnIndex = updatedColumns.findIndex((col: any) => col.columnId === columnId);
+			if (columnIndex === -1) return; // Column not found
+
+			// Remove task from column's taskIds
+			const column = updatedColumns[columnIndex];
+			column.taskIds = [...column.taskIds].filter((id: string) => id !== taskId);
+
+			// Remove the task itself
+			const taskIndex = updatedTasks.findIndex((task: any) => task.taskId === taskId);
+			if (taskIndex !== -1) {
+				updatedTasks.splice(taskIndex, 1);
+			}
+
+			// Update state
+			this.columns = updatedColumns;
+			this.tasks = updatedTasks;
+
+			// Save to localStorage
+			saveData("column", JSON.stringify(this.columns));
+			saveData("task", JSON.stringify(this.tasks));
+		},
+		editTask(
+			taskId: string,
+			taskName: string,
+			priority: "low" | "medium" | "high",
+			dueDate: string,
+			assignee: string,
+			oldColumnId: string,
+			newColumnId: string,
+			positionToChange: number
+		) {
+			const originalTask = [...this.tasks];
+			const findIndexTask = originalTask.findIndex((task) => task.taskId === taskId);
+			originalTask[findIndexTask] = { ...originalTask[findIndexTask], taskName, priority, dueDate, assignee };
+			this.tasks = originalTask;
+			saveData("task", JSON.stringify(this.tasks));
+
+			// remove in old column and filter to new position
+
+			// .taskIds.length
+			if (newColumnId && positionToChange !== undefined) {
+				const updatedColumns = [...this.columns];
+
+				// Remove from old column
+				const oldColumnIndex = updatedColumns.findIndex((col) => col.columnId === oldColumnId);
+				if (oldColumnIndex !== -1) {
+					updatedColumns[oldColumnIndex] = {
+						...updatedColumns[oldColumnIndex],
+						taskIds: updatedColumns[oldColumnIndex].taskIds.filter((id) => id !== taskId),
+					};
+				}
+				const newColumnIndex = updatedColumns.findIndex((col) => col.columnId === newColumnId);
+				if (newColumnIndex !== -1) {
+					const newTaskIds = [...updatedColumns[newColumnIndex].taskIds];
+
+					// Clamp position to valid range
+					const safePosition = Math.max(0, Math.min(positionToChange, newTaskIds.length));
+					newTaskIds.splice(safePosition, 0, taskId);
+
+					updatedColumns[newColumnIndex] = {
+						...updatedColumns[newColumnIndex],
+						taskIds: newTaskIds,
+					};
+				}
+
+				this.columns = updatedColumns;
+				saveData("column", JSON.stringify(this.columns));
+			}
+		},
 		// inviteUser() {}, // if remove user then set state by spread operator
 		// removeUser() {},
-		changePositionTask(columnId: string, columnIdNewToReorder: string, taskId: string, position: number) {},
+		changePositionTask(columnId: string, columnIdNewToReorder: string, taskId: string, positionToChange: number) {},
 	},
 	getters: {
 		getBoardByUserId: (state) => () => {
@@ -245,7 +316,7 @@ export const useBoard = defineStore("board", {
 
 				const columnStore = localStorage.getItem("column");
 				state.columns = columnStore ? JSON.parse(columnStore) : normalizedData.columns;
-				console.log(state.columns, "column");
+				// console.log(state.columns, "column");
 				return state.columns.filter((column) => columnIds.length > 0 && columnIds?.includes(column.columnId));
 			}
 
@@ -269,10 +340,10 @@ export const useBoard = defineStore("board", {
 				state.boards = boardStore ? JSON.parse(boardStore) : normalizedData.boards;
 				state.columns = columnStore ? JSON.parse(columnStore) : normalizedData.columns;
 				state.tasks = taskStore ? JSON.parse(taskStore) : normalizedData.tasks;
-				console.log(state.tasks, "tasks");
+				// console.log(state.tasks, "tasks");
 				const filteredColumnIdForTaskId = state.columns.find((column) => column.columnId === columnId)?.taskIds;
 
-				console.log(filteredColumnIdForTaskId, "columnTaskIds");
+				// console.log(filteredColumnIdForTaskId, "columnTaskIds");
 
 				return state.tasks.filter((task) => {
 					return filteredColumnIdForTaskId?.length! > 0 && filteredColumnIdForTaskId?.includes(task.taskId);

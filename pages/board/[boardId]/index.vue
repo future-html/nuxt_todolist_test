@@ -57,7 +57,7 @@ import ColumnInfo from "~/components/ColumnInfo/index.vue";
 import GridWrapper from "~/components/GridWrapper/index.vue";
 const route = useRoute();
 const boardId = route.params.boardId as string;
-console.log("route.params.boardId", route.params.boardId);
+// console.log("route.params.boardId", route.params.boardId);
 const boardStore = useBoard();
 const columnId = ref<string>("");
 const mode = ref<"add" | "edit" | "">("");
@@ -72,7 +72,7 @@ const handleCloseForm = () => {
 };
 
 const handleOpenFormToEdit = (id: string) => {
-	console.log("clicked");
+	// console.log("clicked");
 	openFormTask.value = true;
 	mode.value = "edit";
 	columnId.value = id;
@@ -84,7 +84,7 @@ const handleDeleteColumn = (columnId: string) => {
 
 const authStroe = useAuth();
 
-console.log(authStroe.getAllUser());
+// console.log(authStroe.getAllUser());
 
 // edit board
 // 1. should open and set to edit mode and props should be pass in the form

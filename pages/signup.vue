@@ -109,7 +109,7 @@ const responseFormAuth = ref<string>("");
 const form = reactive({ name: "", email: "", password: "" });
 const handleRegister = () => {
 	const response = authStore.register(form.name, form.email, form.password);
-	console.log(response);
+	// console.log(response);
 	if (response) {
 		responseFormAuth.value = response;
 		return;

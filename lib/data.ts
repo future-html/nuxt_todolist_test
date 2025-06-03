@@ -46,7 +46,7 @@ export const defaultData = {
 		},
 	],
 };
-console.log(defaultData.users, "defaultData");
+// console.log(defaultData.users, "defaultData");
 // Normalized Data Structure
 // Normalized Data Structure with Arrays
 export interface NormalizedKanbanData {

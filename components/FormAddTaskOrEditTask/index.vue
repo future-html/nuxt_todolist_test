@@ -1,9 +1,9 @@
 <template lang="">
-	<section class="absolute bg-black inset-0 h-full w-full">
+	<section class="absolute overflow-scroll bg-black inset-0 h-full w-full">
 		<div class="relative">
 			<form
 				@submit.prevent="handleSubmit(mode, itemForManagement)"
-				class="w-[24rem] absolute top-0 left-1/2 transform translate-y-1/4 -translate-x-1/2 bg-black p-6 rounded-lg shadow-lg"
+				class="w-[24rem] h-1/2 absolute top-0 left-1/2 transform translate-y-1/4 -translate-x-1/2 bg-black p-6 rounded-lg shadow-lg"
 			>
 				<h2 class="sr-only">Add / Edit Board / Column / Task ==> mode</h2>
 				<!-- // label for input to fill the form and add function prevent submit to the form element <br />// id must not be in
@@ -104,10 +104,36 @@
 				</div>
 				<div
 					class="mt-4"
-					v-if="itemForManagement === 'task'"
+					v-if="itemForManagement === 'task' && mode === 'edit'"
 				>
 					<h2>Change task position</h2>
-					---list column ---list position
+					<div v-for="column in ListOfAllColumnId">
+						<div
+							:class="
+								newColumnId === column.columnId
+									? 'mt-2 text-green-500 border-green-500 border px-2 py-1.5'
+									: 'mt-2 text-white border border-white px-2 py-1.5'
+							"
+							@click="newColumnId = column.columnId"
+						>
+							{{ column.columnName }}
+						</div>
+					</div>
+					<div>
+						<input
+							type="number"
+							min="0"
+							:max="taskBasedOnColumnIdLength"
+							v-model.number="positionToChange"
+						/>
+					</div>
+				</div>
+				<div>
+					<h2>
+						Change position max position can be from 1 to
+						{{ newColumnId }}
+						{{ boardStore.getTaskByByColumnId(newColumnId)?.length + 1 }}
+					</h2>
 				</div>
 
 				<button
@@ -130,6 +156,7 @@
 <script setup lang="ts">
 // const mode = ref("add");
 import { useBoard } from "~/store/useTask";
+import type { Column } from "~/lib/data";
 // const itemForManagement = ref < "board" | "column"| "task">("board");  // use this variable to store in pinia
 const name = ref<string>(""); // use this variable to store in pinia value are work but there is also defineModel
 // const member = ref<string>(""); // use this variable to store in pinia
@@ -140,7 +167,12 @@ const boardStore = useBoard();
 const boardMember = ref<string[]>([]);
 // const tags = ref<string[]>([]);
 const listUserThatCanInvite = ref<string[]>([]);
-console.log(name.value);
+// console.log(name.value);
+
+const oldColumnId = ref<string>("");
+const positionToChange = ref<number>(0);
+const newColumnId = ref<string>("");
+const ListOfAllColumnId = ref<Column[]>([]);
 
 const router = useRoute();
 const boardId = router.params.boardId;
@@ -168,15 +200,15 @@ const props = defineProps({
 });
 
 if (props.mode === "edit" && props.itemForManagement === "board") {
-	console.log(props.id, "id for board");
+	// console.log(props.id, "id for board");
 	listUserThatCanInvite.value = [
 		...(boardStore.getInvitePeopleToJoinBoard(props.id as string) || []),
 		...(boardStore.getMemberWhoCanBeAssigneeFromBoardId(props.id as string) || []),
 	];
 }
 
-console.log(props.id, "props id to edit form");
-console.log(props.itemForManagement === "column");
+// console.log(props.id, "props id to edit form");
+// console.log(props.itemForManagement === "column");
 const editInfo =
 	props.itemForManagement === "board"
 		? boardStore.getEditFormByBoardOrColumnOrTaskId(props.id)
@@ -197,20 +229,25 @@ if (props.mode === "edit" && editInfo) {
 		if ("assignee" in editInfo) assignee.value = editInfo.assignee;
 	}
 }
+if (props.mode === "edit" && props.itemForManagement === "task") {
+	oldColumnId.value = props.column as string; // store old column id
+	ListOfAllColumnId.value = boardStore.getColumnByBoardId(boardId as string) || [];
+	// // console.log(ListOfAllColumnId.value, "list of all column id");
+}
 const handleChangeMemberIncludeOrnot = (userId: string) => {
 	if (boardMember.value.includes(userId)) {
 		// const findIndex = boardMember.value.findIndex((elementId) => elementId === userId); // return ['user-1', 'user-2' ,......]
-		// console.log(findIndex, "findIndex");
+		// // console.log(findIndex, "findIndex");
 		const originalBoardMemberInvite = [...boardMember.value];
-		// console.log(originalBoardMemberInvite, "original array");
+		// // console.log(originalBoardMemberInvite, "original array");
 
 		boardMember.value = originalBoardMemberInvite.filter((elementId) => elementId !== userId);
-		// console.log(boardMember.value, "boardmemeber value");
+		// // console.log(boardMember.value, "boardmemeber value");
 	} else if (!boardMember.value.includes(userId)) {
 		const originalArrayBoardMember = [...boardMember.value];
 		originalArrayBoardMember.push(userId);
 		boardMember.value = originalArrayBoardMember;
-		// console.log(boardMember.value, "board member");
+		// // console.log(boardMember.value, "board member");
 	}
 };
 
@@ -233,6 +270,17 @@ const handleSubmit = (mode: string, itemForManagement: string) => {
 			boardStore.editBoard(props.id as string, name.value, boardMember.value);
 		} else if (itemForManagement === "column") {
 			boardStore.updateColumn(props.id as string, name.value);
+		} else if (itemForManagement === "task") {
+			boardStore.editTask(
+				props.id as string,
+				name.value,
+				priority.value,
+				dueDate.value,
+				assignee.value,
+				oldColumnId.value,
+				newColumnId.value,
+				positionToChange.value
+			);
 		}
 		emit("closeForm");
 	}

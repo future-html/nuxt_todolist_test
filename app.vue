@@ -12,7 +12,7 @@ onMounted(async () => {
 	try {
 		const response = await axios.get("http://localhost:3001/api/users");
 		data.value = response.data;
-		console.log(data.value);
+		// console.log(data.value);
 	} catch (error) {
 		console.error("Error fetching data:", error);
 	}
