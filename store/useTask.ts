@@ -328,7 +328,9 @@ export const useBoard = defineStore("board", {
 				const columnIds = state.boards.find((board) => board.boardId === boardId)?.columnIds!;
 
 				// console.log(state.columns, "column");
-				return state.columns.filter((column) => columnIds.length > 0 && columnIds?.includes(column.columnId));
+				return state.columns.filter(
+					(column) => columnIds && columnIds?.length > 0 && columnIds?.includes(column.columnId)
+				);
 			}
 		},
 
