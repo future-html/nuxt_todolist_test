@@ -1,4 +1,4 @@
-# Kanban Board
+# Kanban Board (this branch is valid)
 
 A simple Kanban board built with **Vue & Nuxt** and **TypeScript**, using **localStorage** for data persistence. This project allows users to manage tasks and collaborate with team members.
 
